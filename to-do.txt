@@ -1,0 +1,2 @@
+- dodati prvInitialiseNewTaskPeriodic
+- dodati upute za koristenje xTaskCreatePeriodic u task.h

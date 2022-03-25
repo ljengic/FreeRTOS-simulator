@@ -824,6 +824,101 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB ) PRIVILEGED_FUNCTION;
 #endif /* configSUPPORT_DYNAMIC_ALLOCATION */
 /*-----------------------------------------------------------*/
 
+#if ( configUSE_PERIODIC_TASK == 1 )
+    BaseType_t xTaskCreatePeriodic( TaskFunction_t pxTaskCode,
+                            const char * const pcName, /*lint !e971 Unqualified char types are allowed for strings and single characters only. */
+                            const configSTACK_DEPTH_TYPE usStackDepth,
+                            void * const pvParameters,
+                            UBaseType_t uxPriority,
+                            TaskHandle_t * const pxCreatedTask,
+							TickType_t period,
+							TickType_t duration)
+    {
+    	TCB_t * pxNewTCB;
+        BaseType_t xReturn;
+
+        /* If the stack grows down then allocate the stack then the TCB so the stack
+         * does not grow into the TCB.  Likewise if the stack grows up then allocate
+         * the TCB then the stack. */
+        #if ( portSTACK_GROWTH > 0 )
+        {
+        	/* Allocate space for the TCB.  Where the memory comes from depends on
+        	* the implementation of the port malloc function and whether or not static
+        	* allocation is being used. */
+        	pxNewTCB = ( TCB_t * ) pvPortMalloc( sizeof( TCB_t ) );
+
+
+            if( pxNewTCB != NULL )
+                {
+                    /* Allocate space for the stack used by the task being created.
+                     * The base of the stack memory stored in the TCB so the task can
+                     * be deleted later if required. */
+                    pxNewTCB->pxStack = ( StackType_t * ) pvPortMallocStack( ( ( ( size_t ) usStackDepth ) * sizeof( StackType_t ) ) ); /*lint !e961 MISRA exception as the casts are only redundant for some ports. */
+
+                    if( pxNewTCB->pxStack == NULL )
+                    {
+                        /* Could not allocate the stack.  Delete the allocated TCB. */
+                        vPortFree( pxNewTCB );
+                        pxNewTCB = NULL;
+                    }
+                }
+        }
+		#else /* portSTACK_GROWTH */
+        {
+            StackType_t * pxStack;
+
+            /* Allocate space for the stack used by the task being created. */
+            pxStack = pvPortMallocStack( ( ( ( size_t ) usStackDepth ) * sizeof( StackType_t ) ) ); /*lint !e9079 All values returned by pvPortMalloc() have at least the alignment required by the MCU's stack and this allocation is the stack. */
+
+            if( pxStack != NULL )
+            {
+                /* Allocate space for the TCB. */
+                pxNewTCB = ( TCB_t * ) pvPortMalloc( sizeof( TCB_t ) ); /*lint !e9087 !e9079 All values returned by pvPortMalloc() have at least the alignment required by the MCU's stack, and the first member of TCB_t is always a pointer to the task's stack. */
+
+                if( pxNewTCB != NULL )
+                {
+                    /* Store the stack location in the TCB. */
+                    pxNewTCB->pxStack = pxStack;
+                }
+                else
+                {
+                    /* The stack cannot be used as the TCB was not created.  Free
+                     * it again. */
+                    vPortFreeStack( pxStack );
+                }
+            }
+            else
+            {
+                pxNewTCB = NULL;
+            }
+        }
+		#endif /* portSTACK_GROWTH */
+
+        if( pxNewTCB != NULL )
+        {
+			#if ( tskSTATIC_AND_DYNAMIC_ALLOCATION_POSSIBLE != 0 ) /*lint !e9029 !e731 Macro has been consolidated for readability reasons. */
+				{
+					/* Tasks can be created statically or dynamically, so note this
+					 * task was created dynamically in case it is later deleted. */
+					pxNewTCB->ucStaticallyAllocated = tskDYNAMICALLY_ALLOCATED_STACK_AND_TCB;
+				}
+			#endif /* tskSTATIC_AND_DYNAMIC_ALLOCATION_POSSIBLE */
+			prvInitialiseNewTaskPeriodic( pxTaskCode, pcName, ( uint32_t ) usStackDepth, pvParameters, uxPriority, pxCreatedTask, period, duration, pxNewTCB, NULL );
+			prvAddNewTaskToReadyList( pxNewTCB );
+			xReturn = pdPASS;
+        }
+        else
+        {
+        	xReturn = errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY;
+        }
+
+        return xReturn;
+
+    }
+#endif /* cconfigUSE_PERIODIC_TASK */
+
+/*-----------------------------------------------------------*/
+
 static void prvInitialiseNewTask( TaskFunction_t pxTaskCode,
                                   const char * const pcName, /*lint !e971 Unqualified char types are allowed for strings and single characters only. */
                                   const uint32_t ulStackDepth,

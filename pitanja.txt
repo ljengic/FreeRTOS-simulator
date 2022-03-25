@@ -1,1 +1,3 @@
-- novi define u config.h
+- novi define u config.h ?
+- imati istovremeno npr. i normalni task i periodic task (razlike u TCB-u) ?
+

@@ -251,6 +251,23 @@ typedef enum
 * TASK CREATION API
 *----------------------------------------------------------*/
 
+/*
+xTaskCreatePeriodic :
+Create a new PERIODIC task and add it to the list of tasks that are ready to run.
+*/
+
+#if ( configUSE_PERIODIC_TASK == 1 )
+    BaseType_t xTaskCreatePeriodic( TaskFunction_t pxTaskCode,
+                            const char * const pcName, /*lint !e971 Unqualified char types are allowed for strings and single characters only. */
+                            const configSTACK_DEPTH_TYPE usStackDepth,
+                            void * const pvParameters,
+                            UBaseType_t uxPriority,
+                            TaskHandle_t * const pxCreatedTask,
+							TickType_t period,
+							TickType_t duration) PRIVILEGED_FUNCTION;
+#endif
+
+
 /**
  * task. h
  * @code{c}
