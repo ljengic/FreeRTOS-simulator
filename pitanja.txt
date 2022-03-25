@@ -1,0 +1,1 @@
+- novi define u config.h
