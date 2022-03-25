@@ -903,7 +903,13 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB ) PRIVILEGED_FUNCTION;
 					pxNewTCB->ucStaticallyAllocated = tskDYNAMICALLY_ALLOCATED_STACK_AND_TCB;
 				}
 			#endif /* tskSTATIC_AND_DYNAMIC_ALLOCATION_POSSIBLE */
-			prvInitialiseNewTaskPeriodic( pxTaskCode, pcName, ( uint32_t ) usStackDepth, pvParameters, uxPriority, pxCreatedTask, period, duration, pxNewTCB, NULL );
+			prvInitialiseNewTask( pxTaskCode, pcName, ( uint32_t ) usStackDepth, pvParameters, uxPriority, pxCreatedTask, pxNewTCB, NULL );
+
+	    	pxNewTCB->xTaskPeriod = period;
+	    	pxNewTCB->xTaskDuration = duration;
+	    	pxNewTCB->xDeadline = period;
+	    	pxNewTCB->xRemainingTicks = duration;
+
 			prvAddNewTaskToReadyList( pxNewTCB );
 			xReturn = pdPASS;
         }
@@ -918,6 +924,31 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB ) PRIVILEGED_FUNCTION;
 #endif /* cconfigUSE_PERIODIC_TASK */
 
 /*-----------------------------------------------------------*/
+/*
+#if ( configUSE_PERIODIC_TASK == 1 )
+    static void prvInitialiseNewTaskPeriodic( TaskFunction_t pxTaskCode,
+                                      const char * const pcName,
+                                      const uint32_t ulStackDepth,
+                                      void * const pvParameters,
+                                      UBaseType_t uxPriority,
+                                      TaskHandle_t * const pxCreatedTask,
+									  TickType_t period,
+									  TickType_t duration,
+                                      TCB_t * pxNewTCB,
+                                      const MemoryRegion_t * const xRegions )
+    {
+    	prvInitialiseNewTask( pxTaskCode, pcName, ( uint32_t ) ulStackDepth, pvParameters, uxPriority, pxCreatedTask, pxNewTCB, NULL );
+
+    	pxNewTCB->xTaskPeriod = period;
+    	pxNewTCB->xTaskDuration = duration;
+    	pxNewTCB->xDeadline = period;
+    	pxNewTCB->xRemainingTicks = duration;
+    }
+#endif /* cconfigUSE_PERIODIC_TASK */
+
+/*-----------------------------------------------------------*/
+
+
 
 static void prvInitialiseNewTask( TaskFunction_t pxTaskCode,
                                   const char * const pcName, /*lint !e971 Unqualified char types are allowed for strings and single characters only. */
