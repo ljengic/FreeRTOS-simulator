@@ -67,7 +67,7 @@ static void prvTask( void * pvParameters )
 
 	  for( ; ; )
 	  {
-		  //console_print( "Task period is %d\n",int(xTask->xTaskPeriod) );
+		  console_print( "Task period is %d\n",xTaskDurationGet(handler_na_task) );
 		  UBaseType_t prioritet = uxTaskPriorityGet(handler_na_task);
 		  console_print( "Task is running = %ld \n",prioritet);
 		  vTaskDelay(1000 / portTICK_RATE_MS);

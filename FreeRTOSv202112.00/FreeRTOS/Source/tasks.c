@@ -600,7 +600,7 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB ) PRIVILEGED_FUNCTION;
                  * variable of type StaticTask_t equals the size of the real task
                  * structure. */
                 volatile size_t xSize = sizeof( StaticTask_t );
-                configASSERT( xSize == sizeof( TCB_t ) );
+                //configASSERT( xSize == sizeof( TCB_t ) );
                 ( void ) xSize; /* Prevent lint warning when configASSERT() is not used. */
             }
         #endif /* configASSERT_DEFINED */
@@ -1635,6 +1635,51 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB )
     }
 
 #endif /* INCLUDE_uxTaskPriorityGet */
+/*-----------------------------------------------------------*/
+
+#if ( INCLUDE_xTaskPeriodGet == 1 )
+
+    TickType_t xTaskPeriodGet( const TaskHandle_t xTask )
+    {
+        TCB_t const * pxTCB;
+        TickType_t uxReturn;
+
+        taskENTER_CRITICAL();
+        {
+            /* If null is passed in here then it is the priority of the task
+             * that called uxTaskPriorityGet() that is being queried. */
+            pxTCB = prvGetTCBFromHandle( xTask );
+            uxReturn = pxTCB->xTaskPeriod;
+        }
+        taskEXIT_CRITICAL();
+
+        return uxReturn;
+    }
+
+#endif /* INCLUDE_xTaskPeriodGet */
+/*-----------------------------------------------------------*/
+
+
+#if ( INCLUDE_xTaskDurationGet == 1 )
+
+    TickType_t xTaskDurationGet( const TaskHandle_t xTask )
+    {
+        TCB_t const * pxTCB;
+        TickType_t uxReturn;
+
+        taskENTER_CRITICAL();
+        {
+            /* If null is passed in here then it is the priority of the task
+             * that called uxTaskPriorityGet() that is being queried. */
+            pxTCB = prvGetTCBFromHandle( xTask );
+            uxReturn = pxTCB->xTaskDuration;
+        }
+        taskEXIT_CRITICAL();
+
+        return uxReturn;
+    }
+
+#endif /* INCLUDE_xTaskPeriodGet */
 /*-----------------------------------------------------------*/
 
 #if ( INCLUDE_uxTaskPriorityGet == 1 )

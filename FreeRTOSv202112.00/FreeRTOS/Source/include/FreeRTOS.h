@@ -206,6 +206,14 @@
     #define INCLUDE_xTaskGetCurrentTaskHandle    0
 #endif
 
+#ifndef INCLUDE_xTaskPeriodGet
+    #define INCLUDE_xTaskPeriodGet    0
+#endif
+
+#ifndef INCLUDE_xTaskDurationGet
+    #define INCLUDE_xTaskDurationGet    0
+#endif
+
 #if configUSE_CO_ROUTINES != 0
     #ifndef configMAX_CO_ROUTINE_PRIORITIES
         #error configMAX_CO_ROUTINE_PRIORITIES must be greater than or equal to 1.
@@ -819,7 +827,7 @@
 #endif
 
 #ifndef configUSE_PERIODIC_TASK
-    #define configUSE_PERIODIC_TASK    1
+    #define configUSE_PERIODIC_TASK    0
 #endif
 
 #ifndef portTASK_USES_FLOATING_POINT
@@ -1229,12 +1237,6 @@ typedef struct xSTATIC_TCB
     #endif
     #if ( configUSE_POSIX_ERRNO == 1 )
         int iDummy22;
-    #endif
-	#if ( configUSE_PERIODIC_TASK == 1 )
-        TickType_t xTaskPeriod;
-        TickType_t xTaskDuration;
-        TickType_t xDeadline;
-        TickType_t xRemainingTicks;
     #endif
 } StaticTask_t;
 
