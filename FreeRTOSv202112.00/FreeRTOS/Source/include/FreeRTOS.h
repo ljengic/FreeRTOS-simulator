@@ -818,6 +818,10 @@
     #define configUSE_QUEUE_SETS    0
 #endif
 
+#ifndef configUSE_PERIODIC_TASK
+    #define configUSE_PERIODIC_TASK    1
+#endif
+
 #ifndef portTASK_USES_FLOATING_POINT
     #define portTASK_USES_FLOATING_POINT()
 #endif
@@ -1225,6 +1229,12 @@ typedef struct xSTATIC_TCB
     #endif
     #if ( configUSE_POSIX_ERRNO == 1 )
         int iDummy22;
+    #endif
+	#if ( configUSE_PERIODIC_TASK == 1 )
+        TickType_t xTaskPeriod;
+        TickType_t xTaskDuration;
+        TickType_t xDeadline;
+        TickType_t xRemainingTicks;
     #endif
 } StaticTask_t;
 

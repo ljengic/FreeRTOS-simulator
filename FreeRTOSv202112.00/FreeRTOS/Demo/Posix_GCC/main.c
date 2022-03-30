@@ -66,8 +66,9 @@
 /* Local includes. */
 #include "console.h"
 
-#define    BLINKY_DEMO    0
-#define    FULL_DEMO      1
+#define    BLINKY_DEMO   		0
+#define    FULL_DEMO     	 	1
+#define    PERIODIC_TASK_DEMO	2
 
 #ifdef BUILD_DIR
     #define BUILD         BUILD_DIR
@@ -79,13 +80,14 @@
 #ifdef USER_DEMO
     #define     mainSELECTED_APPLICATION    USER_DEMO
 #else /* Default Setting */
-    #define    mainSELECTED_APPLICATION     BLINKY_DEMO
+    #define    mainSELECTED_APPLICATION     PERIODIC_TASK_DEMO
 #endif
 
 /* This demo uses heap_3.c (the libc provided malloc() and free()). */
 
 /*-----------------------------------------------------------*/
 extern void main_blinky( void );
+extern void main_demo_periodic( void );
 extern void main_full( void );
 static void traceOnEnter( void );
 
@@ -176,6 +178,11 @@ int main( void )
             console_print( "Starting full demo\n" );
             main_full();
         }
+	#elif ( mainSELECTED_APPLICATION == PERIODIC_TASK_DEMO)
+    {
+        console_print( "Starting periodic task demo\n" );
+        main_demo_periodic();
+    }
     #else
         {
             #error "The selected demo is not valid"
