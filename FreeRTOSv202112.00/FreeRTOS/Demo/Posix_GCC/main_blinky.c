@@ -65,12 +65,33 @@ static void prvTask( void * pvParameters )
 
 	  ( void ) pvParameters;
 
+	  TickType_t start,elapsed;
+
 	  for( ; ; )
 	  {
-		  console_print( "Task period is %d\n",xTaskDurationGet(handler_na_task) );
-		  UBaseType_t prioritet = uxTaskPriorityGet(handler_na_task);
-		  console_print( "Task is running = %ld \n",prioritet);
-		  vTaskDelay(1000 / portTICK_RATE_MS);
+
+		  start = xTaskGetTickCount();
+
+		  console_print( "Task is started\n");
+
+		  while(1){
+
+			  //console_print( "Some work...\n");
+
+			  elapsed = xTaskGetTickCount() - start;
+
+			  if(elapsed >= xTaskDurationGet(handler_na_task)) break;
+
+		  }
+
+		  console_print( "Task is bloked\n");
+
+		  //console_print( "Task period is %d\n",xTaskDurationGet(handler_na_task) );
+		  //UBaseType_t prioritet = uxTaskPriorityGet(handler_na_task);
+
+		  elapsed = xTaskGetTickCount() - start;
+
+		  vTaskDelay(xTaskPeriodGet(handler_na_task)-elapsed);
 	  }
 
 }
