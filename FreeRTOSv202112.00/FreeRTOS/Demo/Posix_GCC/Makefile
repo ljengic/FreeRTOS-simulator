@@ -112,13 +112,13 @@ ${BIN} : $(BUILD_DIR)/$(BIN)
 
 ${BUILD_DIR}/${BIN} : ${OBJ_FILES}
 	-mkdir -p ${@D}
-	$(CC) $^ ${LDFLAGS} -o $@
+	$(CC) $^ ${LDFLAGS} -o $@ -lm
 
 -include ${DEP_FILE}
 
 ${BUILD_DIR}/%.o : %.c Makefile
 	-mkdir -p $(@D)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -MMD -c $< -o $@
+	$(CC) $(CPPFLAGS) $(CFLAGS) -MMD -c $< -o $@ -lm
 
 .PHONY: clean
 

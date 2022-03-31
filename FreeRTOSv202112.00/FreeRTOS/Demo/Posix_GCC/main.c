@@ -65,6 +65,7 @@
 
 /* Local includes. */
 #include "console.h"
+#include "taskSetGenerator.h"
 
 #define    BLINKY_DEMO   		0
 #define    FULL_DEMO     	 	1
@@ -144,8 +145,16 @@ StackType_t uxTimerTaskStack[ configTIMER_TASK_STACK_DEPTH ];
 
 /*-----------------------------------------------------------*/
 
-int main( void )
+int main( int argc, char **argv )
 {
+
+    if(argc<=2) {
+		printf("You did not feed me with right arguments, I will die now :( ...\n");
+		exit(1);
+	}
+	double utilization = atof(argv[1]);  //argv[0] is the program name
+	int n = atoi(argv[2]);
+
     /* SIGINT is not blocked by the posix port */
     signal( SIGINT, handle_sigint );
 
@@ -168,6 +177,9 @@ int main( void )
     #endif /* if ( projCOVERAGE_TEST != 1 ) */
 
     console_init();
+
+    startTaskSetGenerator(utilization,n	);
+
     #if ( mainSELECTED_APPLICATION == BLINKY_DEMO )
         {
             console_print( "Starting echo blinky demo\n" );
