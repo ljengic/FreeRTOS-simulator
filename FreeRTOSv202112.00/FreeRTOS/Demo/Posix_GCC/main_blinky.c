@@ -9,6 +9,7 @@
 
 /* Local includes. */
 #include "console.h"
+#include "taskSetGenerator.h"
 
 /* Priorities at which the tasks are created. */
 #define mainTASK_PRIORITY					 ( tskIDLE_PRIORITY + 1 )
@@ -20,8 +21,8 @@
  */
 static void prvTask( void * pvParameters );
 
+TaskHandle_t handler[MAX_TASK_CNT];
 TaskHandle_t handler_na_task;
-
 /*-----------------------------------------------------------*/
 
 /*** SEE THE COMMENTS AT THE TOP OF THIS FILE ***/
@@ -29,19 +30,32 @@ void  main_demo_periodic (void)
 {
 
 	 console_print( "usao sam u main \n" );
+/*
+	 int n = getTaskCnt();
 
-	/* Start the two tasks as described in the comments at the top of this
-	 * file. */
-	xTaskCreatePeriodic( prvTask,             /* The function that implements the task. */
-					 "PeriodicTasks-Test",                            /* The text name assigned to the task - for debug only as it is not used by the kernel. */
-					 configMINIMAL_STACK_SIZE,        /* The size of the stack to allocate to the task. */
-					 NULL,                            /* The parameter passed to the task - not used in this simple case. */
-					 mainTASK_PRIORITY, /* The priority assigned to the task. */
-					 handler_na_task,						/* The task handle is not required, so NULL is passed. */
-					 5000 / portTICK_RATE_MS,								/*period*/
-					 1000 / portTICK_RATE_MS);                          /* duration */
+	 for(int i=0;i<n;i++){
 
+		 xTaskCreatePeriodic( prvTask,
+					 getTaskName(i),
+					 configMINIMAL_STACK_SIZE,
+					 NULL,
+					 mainTASK_PRIORITY,
+					 handler[i],
+					 (getTaskPeriod(i)*100) / portTICK_RATE_MS,
+					 (getTaskDuration(i)*100) / portTICK_RATE_MS);
+
+	 }
 	 //console_print( "prosao sam taskCreatePeriodic \n" );
+*/
+
+	 xTaskCreatePeriodic( prvTask,             /* The function that implements the task. */
+				 "task",                            /* The text name assigned to the task - for debug only as it is not used by the kernel. */
+				 configMINIMAL_STACK_SIZE,        /* The size of the stack to allocate to the task. */
+				 NULL,                            /* The parameter passed to the task - not used in this simple case. */
+				 mainTASK_PRIORITY, /* The priority assigned to the task. */
+				 handler_na_task,						/* The task handle is not required, so NULL is passed. */
+				 5000 / portTICK_RATE_MS,								/*period*/
+				 1000 / portTICK_RATE_MS);                          /* duration */
 
 	/* Start the tasks and timer running. */
 	vTaskStartScheduler();
