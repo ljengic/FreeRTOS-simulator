@@ -7,7 +7,6 @@
 int TASK_CNT;
 
 struct periodic{
-	char * name;
 	double u;
 	TickType_t period;
 	TickType_t duration;
@@ -57,13 +56,6 @@ void generateTaskPeriods(){
 	Task_Set[4].period = 100;
 }
 
-void generateTaskNames(){
-	Task_Set[0].name = "Task_1";
-	Task_Set[1].name = "Task_2";
-	Task_Set[2].name = "Task_3";
-	Task_Set[3].name = "Task_4";
-	Task_Set[4].name = "Task_5";
-}
 
 void calculateUtilization(double utilization){
 
@@ -97,18 +89,14 @@ void startTaskSetGenerator(double utilization,int n){
 
 }
 
-int getTaskPeriod(int i){
-	int ret=Task_Set[i].period;
+
+TickType_t getTaskPeriod(int i){
+	TickType_t ret=Task_Set[i].period;
 	return ret;
 }
 
-int getTaskDuration(int i){
-	int ret=Task_Set[i].duration;
-	return ret;
-}
-
-char * getTaskName(int i){
-	char * ret=Task_Set[i].name;
+TickType_t getTaskDuration(int i){
+	TickType_t ret=Task_Set[i].duration;
 	return ret;
 }
 
