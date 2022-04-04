@@ -258,6 +258,7 @@ Create a new PERIODIC task and add it to the list of tasks that are ready to run
 
 #if ( configUSE_PERIODIC_TASK == 1 )
 BaseType_t xTaskCreatePeriodic( TaskFunction_t pxTaskCode,
+								uint8_t id,
                                const char * const pcName, /*lint !e971 Unqualified char types are allowed for strings and single characters only. */
                                const configSTACK_DEPTH_TYPE usStackDepth,
                                void * const pvParameters,
@@ -991,6 +992,18 @@ UBaseType_t uxTaskPriorityGetFromISR( const TaskHandle_t xTask ) PRIVILEGED_FUNC
  * state of the task might change between the function being called, and the
  * functions return value being tested by the calling task.
  */
+
+TickType_t xTaskPeriodGet( const TaskHandle_t xTask );
+TickType_t xTaskDurationGet( const TaskHandle_t xTask );
+TickType_t uxTaskReminigTicksGet( const TaskHandle_t xTask );
+void uxTaskReminigTicksSet( const TaskHandle_t xTask, const UBaseType_t newXReminingTicks);
+void uxTaskReminigTicksSetFromISR( const TaskHandle_t xTask ,TickType_t newXReminingTicks);
+TickType_t uxTaskReminigTicksGetFromISR( const TaskHandle_t xTask );
+uint8_t xTaskIdGet( const TaskHandle_t xTask );
+uint8_t xGetCurrentId();
+uint8_t uxGetCurrentIdFromISR();
+
+
 eTaskState eTaskGetState( TaskHandle_t xTask ) PRIVILEGED_FUNCTION;
 
 /**

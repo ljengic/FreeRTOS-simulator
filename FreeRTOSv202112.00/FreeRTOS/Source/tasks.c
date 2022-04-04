@@ -331,6 +331,7 @@ typedef struct tskTaskControlBlock       /* The old naming convention is used to
     #endif
 
 	#if ( configUSE_PERIODIC_TASK == 1 )
+        uint8_t xTaskId;
         TickType_t xTaskPeriod;
         TickType_t xTaskDuration;
         TickType_t xDeadline;
@@ -826,6 +827,7 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB ) PRIVILEGED_FUNCTION;
 
 #if ( configUSE_PERIODIC_TASK == 1 && configSUPPORT_DYNAMIC_ALLOCATION == 1)
     BaseType_t xTaskCreatePeriodic( TaskFunction_t pxTaskCode,
+    							uint8_t id,
                                const char * const pcName, /*lint !e971 Unqualified char types are allowed for strings and single characters only. */
                                const configSTACK_DEPTH_TYPE usStackDepth,
                                void * const pvParameters,
@@ -903,7 +905,8 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB ) PRIVILEGED_FUNCTION;
                    }
                #endif /* tskSTATIC_AND_DYNAMIC_ALLOCATION_POSSIBLE */
 
-				pxNewTCB->xTaskPeriod = period;
+                pxNewTCB->xTaskId = id;
+                pxNewTCB->xTaskPeriod = period;
 				pxNewTCB->xTaskDuration = duration;
 				pxNewTCB->xDeadline = period;
 				pxNewTCB->xRemainingTicks = duration;
@@ -1680,6 +1683,81 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB )
     }
 
 #endif /* INCLUDE_xTaskPeriodGet */
+
+/*-----------------------------------------------------------*/
+
+
+#if ( INCLUDE_xTaskIdGet == 1 )
+
+    uint8_t uxGetCurrentIdFromISR()
+    {
+        TCB_t const * pxTCB;
+        uint8_t uxReturn, uxSavedInterruptState;
+
+        /* RTOS ports that support interrupt nesting have the concept of a
+         * maximum  system call (or maximum API call) interrupt priority.
+         * Interrupts that are  above the maximum system call priority are keep
+         * permanently enabled, even when the RTOS kernel is in a critical section,
+         * but cannot make any calls to FreeRTOS API functions.  If configASSERT()
+         * is defined in FreeRTOSConfig.h then
+         * portASSERT_IF_INTERRUPT_PRIORITY_INVALID() will result in an assertion
+         * failure if a FreeRTOS API function is called from an interrupt that has
+         * been assigned a priority above the configured maximum system call
+         * priority.  Only FreeRTOS functions that end in FromISR can be called
+         * from interrupts  that have been assigned a priority at or (logically)
+         * below the maximum system call interrupt priority.  FreeRTOS maintains a
+         * separate interrupt safe API to ensure interrupt entry is as fast and as
+         * simple as possible.  More information (albeit Cortex-M specific) is
+         * provided on the following link:
+         * https://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html */
+        portASSERT_IF_INTERRUPT_PRIORITY_INVALID();
+
+        uxSavedInterruptState = portSET_INTERRUPT_MASK_FROM_ISR();
+        {
+            /* If null is passed in here then it is the priority of the calling
+             * task that is being queried. */
+        	pxTCB = pxCurrentTCB;
+        	uxReturn = pxTCB->xTaskId;
+        }
+        portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptState );
+
+        return uxReturn;
+    }
+
+    uint8_t xGetCurrentId(){
+    	TCB_t const * pxTCB;
+		uint8_t uxReturn;
+
+		taskENTER_CRITICAL();
+		{
+			/* If null is passed in here then it is the priority of the task
+			 * that called uxTaskPriorityGet() that is being queried. */
+			pxTCB = pxCurrentTCB;
+			uxReturn = pxTCB->xTaskId;
+		}
+		taskEXIT_CRITICAL();
+
+		return uxReturn;
+    }
+
+	uint8_t xTaskIdGet( const TaskHandle_t xTask )
+	{
+		TCB_t const * pxTCB;
+		uint8_t uxReturn;
+
+		taskENTER_CRITICAL();
+		{
+			/* If null is passed in here then it is the priority of the task
+			 * that called uxTaskPriorityGet() that is being queried. */
+			pxTCB = prvGetTCBFromHandle( xTask );
+			uxReturn = pxTCB->xTaskId;
+		}
+		taskEXIT_CRITICAL();
+
+		return uxReturn;
+	}
+
+#endif /* INCLUDE_xTaskIdGet */
 /*-----------------------------------------------------------*/
 
 #if ( INCLUDE_uxTaskPriorityGet == 1 )
@@ -1720,6 +1798,125 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB )
     }
 
 #endif /* INCLUDE_uxTaskPriorityGet */
+/*-----------------------------------------------------------*/
+
+#if ( INCLUDE_uxTaskReminigTicksGet == 1 )
+
+    TickType_t uxTaskReminigTicksGetFromISR( const TaskHandle_t xTask )
+    {
+        TCB_t const * pxTCB;
+        TickType_t uxReturn, uxSavedInterruptState;
+
+        /* RTOS ports that support interrupt nesting have the concept of a
+         * maximum  system call (or maximum API call) interrupt priority.
+         * Interrupts that are  above the maximum system call priority are keep
+         * permanently enabled, even when the RTOS kernel is in a critical section,
+         * but cannot make any calls to FreeRTOS API functions.  If configASSERT()
+         * is defined in FreeRTOSConfig.h then
+         * portASSERT_IF_INTERRUPT_PRIORITY_INVALID() will result in an assertion
+         * failure if a FreeRTOS API function is called from an interrupt that has
+         * been assigned a priority above the configured maximum system call
+         * priority.  Only FreeRTOS functions that end in FromISR can be called
+         * from interrupts  that have been assigned a priority at or (logically)
+         * below the maximum system call interrupt priority.  FreeRTOS maintains a
+         * separate interrupt safe API to ensure interrupt entry is as fast and as
+         * simple as possible.  More information (albeit Cortex-M specific) is
+         * provided on the following link:
+         * https://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html */
+        portASSERT_IF_INTERRUPT_PRIORITY_INVALID();
+
+        uxSavedInterruptState = portSET_INTERRUPT_MASK_FROM_ISR();
+        {
+            /* If null is passed in here then it is the priority of the calling
+             * task that is being queried. */
+            pxTCB = prvGetTCBFromHandle( xTask );
+            uxReturn = pxTCB->xRemainingTicks;
+        }
+        portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptState );
+
+        return uxReturn;
+    }
+
+#endif /* INCLUDE_uxTaskReminigTicksGet */
+/*-----------------------------------------------------------*/
+
+#if ( INCLUDE_uxTaskReminigTicksGet == 1 )
+
+    TickType_t uxTaskReminigTicksGet( const TaskHandle_t xTask )
+	{
+		TCB_t const * pxTCB;
+		TickType_t uxReturn;
+
+		taskENTER_CRITICAL();
+		{
+			/* If null is passed in here then it is the priority of the task
+			 * that called uxTaskPriorityGet() that is being queried. */
+			pxTCB = prvGetTCBFromHandle( xTask );
+			uxReturn = pxTCB->xRemainingTicks;
+		}
+		taskEXIT_CRITICAL();
+
+		return uxReturn;
+	}
+
+
+    void uxTaskReminigTicksSet( const TaskHandle_t xTask, const UBaseType_t newXReminingTicks)
+   	{
+   		TCB_t * pxTCB;
+   		TickType_t uxReturn;
+
+   		taskENTER_CRITICAL();
+   		{
+   			/* If null is passed in here then it is the priority of the task
+   			 * that called uxTaskPriorityGet() that is being queried. */
+   			pxTCB = prvGetTCBFromHandle( xTask );
+   			pxTCB->xRemainingTicks = newXReminingTicks;
+   		}
+   		taskEXIT_CRITICAL();
+
+   		return ;
+   	}
+
+#endif /* INCLUDE_uxTaskReminigTicksGet */
+/*-----------------------------------------------------------*/
+
+#if ( INCLUDE_uxTaskReminigTicksGet == 1 )
+
+    void uxTaskReminigTicksSetFromISR( const TaskHandle_t xTask ,UBaseType_t newXReminingTicks)
+    {
+        TCB_t * pxTCB;
+        UBaseType_t uxReturn;
+		UBaseType_t uxSavedInterruptState;
+
+        /* RTOS ports that support interrupt nesting have the concept of a
+         * maximum  system call (or maximum API call) interrupt priority.
+         * Interrupts that are  above the maximum system call priority are keep
+         * permanently enabled, even when the RTOS kernel is in a critical section,
+         * but cannot make any calls to FreeRTOS API functions.  If configASSERT()
+         * is defined in FreeRTOSConfig.h then
+         * portASSERT_IF_INTERRUPT_PRIORITY_INVALID() will result in an assertion
+         * failure if a FreeRTOS API function is called from an interrupt that has
+         * been assigned a priority above the configured maximum system call
+         * priority.  Only FreeRTOS functions that end in FromISR can be called
+         * from interrupts  that have been assigned a priority at or (logically)
+         * below the maximum system call interrupt priority.  FreeRTOS maintains a
+         * separate interrupt safe API to ensure interrupt entry is as fast and as
+         * simple as possible.  More information (albeit Cortex-M specific) is
+         * provided on the following link:
+         * https://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html */
+        portASSERT_IF_INTERRUPT_PRIORITY_INVALID();
+
+        uxSavedInterruptState = portSET_INTERRUPT_MASK_FROM_ISR();
+        {
+            /* If null is passed in here then it is the priority of the calling
+             * task that is being queried. */
+            pxTCB = prvGetTCBFromHandle( xTask );
+            pxTCB->xRemainingTicks = newXReminingTicks;
+        }
+        portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptState );
+    }
+
+#endif /* INCLUDE_uxTaskReminigTicksGet */
 /*-----------------------------------------------------------*/
 
 #if ( INCLUDE_vTaskPrioritySet == 1 )

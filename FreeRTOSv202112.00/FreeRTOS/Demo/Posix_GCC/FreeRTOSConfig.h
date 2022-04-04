@@ -113,6 +113,8 @@ void vConfigureTimerForRunTimeStats( void );    /* Prototype of function that in
 #define INCLUDE_xTaskAbortDelay                   1
 #define INCLUDE_xTaskPeriodGet					  1
 #define INCLUDE_xTaskDurationGet				  1
+#define INCLUDE_uxTaskReminigTicksGet             1
+#define INCLUDE_xTaskIdGet						  1
 
 #define configINCLUDE_MESSAGE_BUFFER_AMP_DEMO     0
 #if ( configINCLUDE_MESSAGE_BUFFER_AMP_DEMO == 1 )

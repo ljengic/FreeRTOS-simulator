@@ -272,9 +272,9 @@ void vApplicationTickHook( void )
     * code must not attempt to block, and only the interrupt safe FreeRTOS API
     * functions can be used (those that end in FromISR()). */
 
-    #if ( mainSELECTED_APPLICATION == FULL_DEMO )
+    #if ( mainSELECTED_APPLICATION == PERIODIC_TASK_DEMO )
         {
-            vFullDemoTickHookFunction();
+            vPeriodicTickHookFunction();
         }
     #endif /* mainSELECTED_APPLICATION */
 }

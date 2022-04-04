@@ -35,17 +35,20 @@ void  main_demo_periodic (void)
 
 	 for(int i=0;i<getTaskCnt();i++){
 		 xTaskCreatePeriodic( prvTask,             /* The function that implements the task. */
+				 	 	 	 i,  					// task identificator
 				 	 	 	 getTaskName(i),                            /* The text name assigned to the task - for debug only as it is not used by the kernel. */
 		 					 configMINIMAL_STACK_SIZE,        /* The size of the stack to allocate to the task. */
 		 					 NULL,                            /* The parameter passed to the task - not used in this simple case. */
 		 					 mainTASK_PRIORITY, /* The priority assigned to the task. */
 		 					 handler[i],						/* The task handle is not required, so NULL is passed. */
-							 getTaskPeriod(i) ,								/*period*/
+							 getTaskPeriod(i),								/*period*/
 							 getTaskDuration(i));                          /* duration */
 
 
 		 printInfo(i);
 	 }
+
+	 console_print( "\n Hiperperiod je %d \n\n" ,getHiperPeriod());
 
 	 /*
 	 TaskCreatePeriodic( prvTask,
@@ -58,6 +61,9 @@ void  main_demo_periodic (void)
 					 1000 / portTICK_RATE_MS);
 	*/
 	 console_print( "prosao sam taskCreatePeriodic \n" );
+
+
+
 
 
 	/* Start the tasks and timer running. */
@@ -82,33 +88,65 @@ static void prvTask( void * pvParameters )
 
 	  ( void ) pvParameters;
 
-	  TickType_t start,elapsed;
+	  int id = xGetCurrentId();
+	  int period = getTaskPeriod(id);
+	  int duration = getTaskDuration(id);
+	  char * name = getTaskName(id);
+	  TickType_t startTime;
 
 	  for( ; ; )
 	  {
 
-		  start = xTaskGetTickCount();
+		  console_print( "%s started\n",name);
 
-		  console_print( "Task is started\n");
+		  uxTaskReminigTicksSet(handler[id],duration);
+		  startTime = xTaskGetTickCount();
 
 		  while(1){
 
-			  //console_print( "Some work...\n");
-
-			  elapsed = xTaskGetTickCount() - start;
-
-			  if(elapsed >= xTaskDurationGet(handler[0])) break;
+			  if(uxTaskReminigTicksGet(handler[id]) == 0) break;
 
 		  }
+// ubaci kriticnu sekciju !!!!!!!!!!!!!!!!!!!!!
 
-		  console_print( "Task is bloked\n");
+		  if((xTaskGetTickCount()- startTime) <= (xTaskGetTickCount()%period)){
+			  setReport(id,xTaskGetTickCount()/period);
+		  }
 
-		  //console_print( "Task period is %d\n",xTaskDurationGet(handler_na_task) );
-		  //UBaseType_t prioritet = uxTaskPriorityGet(handler_na_task);
+		  console_print( "%s bloked\n",name);
 
-		  elapsed = xTaskGetTickCount() - start;
 
-		  vTaskDelay(xTaskPeriodGet(handler[0])-elapsed);
+		  vTaskDelay(period - (xTaskGetTickCount()%period));
 	  }
+
+}
+
+void exit_function(){
+
+	for(int i=0;i<getTaskCnt();i++){
+		bool * rep = getReport(i);
+		for(int j=0;j<getTaskNumberOfPeriods(i);j++){
+			printf("%d",rep[j]);
+		}
+		printf("\n");
+	}
+
+	exit(0);
+}
+
+void  vPeriodicTickHookFunction( void ){
+
+	 int id = uxGetCurrentIdFromISR();
+	 TickType_t left_ticks=uxTaskReminigTicksGetFromISR(handler[id]);
+
+	 printf("task %d, left tick=%d\n",id,left_ticks);
+
+	 if(left_ticks > 0){
+		 uxTaskReminigTicksSetFromISR(handler[id],left_ticks-1);
+	 }
+
+	 if(xTaskGetTickCount() == getHiperPeriod()){
+		 exit_function();
+	 }
 
 }

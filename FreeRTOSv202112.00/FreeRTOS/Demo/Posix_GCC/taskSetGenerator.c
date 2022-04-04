@@ -41,9 +41,9 @@ double rand_0_to_1()
 
 int calculateHiperperiod(){
 
-	int temp = Task_Set[0].period;
+	int temp = getTaskPeriod(0);
 
-	for(int i=1;i<TASK_CNT-1;i++){
+	for(int i=1;i<TASK_CNT;i++){
 		temp = LCM(getTaskPeriod(i),temp);
 	}
 	hiperperiod = temp;
@@ -109,7 +109,7 @@ void calculateUtilization(double utilization){
 
 void calculateNumOfPeriods(){
 	for(int i=0;i<TASK_CNT;i++){
-			Task_Set[i].numOfPeriods = getHiperPeriod() / Task_Set[i].period;
+			Task_Set[i].numOfPeriods = getHiperPeriod() / getTaskPeriod(i);
 		}
 }
 
@@ -174,4 +174,11 @@ int getHiperPeriod(){
 	return hiperperiod;
 }
 
+bool * getReport(int i){
+	return Task_Set[i].report;
+}
+
+bool setReport(int i,int x){
+	return Task_Set[i].report[x] = 1;
+}
 
