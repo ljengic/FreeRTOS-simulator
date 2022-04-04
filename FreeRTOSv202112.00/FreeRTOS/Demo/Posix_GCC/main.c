@@ -152,7 +152,7 @@ int main( int argc, char **argv )
 		printf("You did not feed me with right arguments, I will die now :( ...\n");
 		exit(1);
 	}
-	double utilization = atof(argv[1]);  //argv[0] is the program name
+	double utilization = (double)(atoi(argv[1])/100.);  //argv[0] is the program name
 	int n = atoi(argv[2]);
 
     /* SIGINT is not blocked by the posix port */
@@ -167,7 +167,7 @@ int main( int argc, char **argv )
 
             /* Start the trace recording - the recording is written to a file if
              * configASSERT() is called. */
-            printf( "\r\nTrace started.\r\nThe trace will be dumped to disk if a call to configASSERT() fails.\r\n" );
+            //printf( "\r\nTrace started.\r\nThe trace will be dumped to disk if a call to configASSERT() fails.\r\n" );
 
             #if ( TRACE_ON_ENTER == 1 )
                 printf( "\r\nThe trace will be dumped to disk if Enter is hit.\r\n" );
@@ -192,7 +192,7 @@ int main( int argc, char **argv )
         }
 	#elif ( mainSELECTED_APPLICATION == PERIODIC_TASK_DEMO)
     {
-        console_print( "Starting periodic task demo\n" );
+        //console_print( "Starting periodic task demo\n" );
         main_demo_periodic();
     }
     #else

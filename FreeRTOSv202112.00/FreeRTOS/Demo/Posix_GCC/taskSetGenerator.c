@@ -14,10 +14,12 @@ struct periodic_task{
 	int numOfPeriods;
 //	int currentPeriod;          // cunter used for writing in report (ne treba ipak MOZE SE DOBITI KAO PROTEKLO VRIJEME/ PERIOD)
 	bool report[MAX_PERIOD_CNT];
+	int missed_deadlines;
 } Task_Set[MAX_TASK_CNT];
 
 double u[MAX_TASK_CNT];
 int hiperperiod;
+double total_utilization;
 char names[MAX_TASK_CNT][MAX_NAME_LENGHT];
 char default_name[MAX_NAME_LENGHT] = "Task_00\0";
 
@@ -117,6 +119,8 @@ void startTaskSetGenerator(double utilization,int n){
 
 	TASK_CNT = n;
 
+	total_utilization = utilization;
+
 	calculateUtilization(utilization);
 
 	generateTaskPeriods();
@@ -139,6 +143,55 @@ void printInfo(int x){
 	printf("Utilization = %lf\n",getTaskUtilization(x));
 	printf("Number of periods = %d\n",getTaskNumberOfPeriods(x));
 	printf("\n");
+}
+
+void countMissedDeadlines(){
+	for(int i=0;i<getTaskCnt();i++){
+		bool * rep = getReport(i);
+		int cnt=0;
+		for(int j=0;j<getTaskNumberOfPeriods(i);j++){
+			if(rep[j] == 0){
+				cnt++;
+			}
+		}
+		Task_Set[i].missed_deadlines = cnt;
+	}
+}
+
+int sumOfMissedDeadlines(){
+	int ret=0;
+	for(int i=0;i<getTaskCnt();i++){
+		ret+=getMissedDeadlines(i);
+	}
+	return ret;
+}
+
+void writeReportInFile(){
+
+	FILE *file;
+
+	file = fopen("/home/luka/FreeRTOS-simulator/Report.csv","a");
+	/*
+	fprintf(file,"utilization,number_of_taks,total missed");
+
+	for(int i=0;i<getTaskCnt();i++){
+		fprintf(file,",m%d",i+1);
+	}
+
+	fprintf(file,"\n");
+
+	*/
+
+	fprintf(file,"%lf,%d,%d",total_utilization,getTaskCnt(),sumOfMissedDeadlines());
+
+	for(int i=0;i<getTaskCnt();i++){
+		fprintf(file,",%d",getMissedDeadlines(i));
+	}
+
+	fprintf(file,"\n");
+
+	fclose(file);
+
 }
 
 int getTaskPeriod(int i){
@@ -172,6 +225,11 @@ int getTaskCnt(){
 
 int getHiperPeriod(){
 	return hiperperiod;
+}
+
+int getMissedDeadlines(int i){
+	int ret=Task_Set[i].missed_deadlines;
+	return ret;
 }
 
 bool * getReport(int i){

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <pthread.h>
 
 /* Kernel includes. */
@@ -29,7 +30,7 @@ TaskHandle_t handler[MAX_TASK_CNT];
 void  main_demo_periodic (void)
 {
 
-	 console_print( "usao sam u main \n" );
+	// console_print( "usao sam u main \n" );
 
 
 
@@ -45,10 +46,10 @@ void  main_demo_periodic (void)
 							 getTaskDuration(i));                          /* duration */
 
 
-		 printInfo(i);
+		// printInfo(i);
 	 }
 
-	 console_print( "\n Hiperperiod je %d \n\n" ,getHiperPeriod());
+	 //console_print( "\n Hiperperiod je %d \n\n" ,getHiperPeriod());
 
 	 /*
 	 TaskCreatePeriodic( prvTask,
@@ -60,7 +61,7 @@ void  main_demo_periodic (void)
 					 5000 / portTICK_RATE_MS,
 					 1000 / portTICK_RATE_MS);
 	*/
-	 console_print( "prosao sam taskCreatePeriodic \n" );
+	 //console_print( "prosao sam taskCreatePeriodic \n" );
 
 
 
@@ -97,7 +98,7 @@ static void prvTask( void * pvParameters )
 	  for( ; ; )
 	  {
 
-		  console_print( "%s started\n",name);
+		  //console_print( "%s started\n",name);
 
 		  uxTaskReminigTicksSet(handler[id],duration);
 		  startTime = xTaskGetTickCount();
@@ -113,7 +114,7 @@ static void prvTask( void * pvParameters )
 			  setReport(id,xTaskGetTickCount()/period);
 		  }
 
-		  console_print( "%s bloked\n",name);
+		  //console_print( "%s bloked\n",name);
 
 
 		  vTaskDelay(period - (xTaskGetTickCount()%period));
@@ -122,7 +123,7 @@ static void prvTask( void * pvParameters )
 }
 
 void exit_function(){
-
+	/*
 	for(int i=0;i<getTaskCnt();i++){
 		bool * rep = getReport(i);
 		for(int j=0;j<getTaskNumberOfPeriods(i);j++){
@@ -130,6 +131,10 @@ void exit_function(){
 		}
 		printf("\n");
 	}
+	*/
+	countMissedDeadlines();
+
+	writeReportInFile();
 
 	exit(0);
 }
@@ -139,7 +144,7 @@ void  vPeriodicTickHookFunction( void ){
 	 int id = uxGetCurrentIdFromISR();
 	 TickType_t left_ticks=uxTaskReminigTicksGetFromISR(handler[id]);
 
-	 printf("task %d, left tick=%d\n",id,left_ticks);
+	 //printf("task %d, left tick=%d\n",id,left_ticks);
 
 	 if(left_ticks > 0){
 		 uxTaskReminigTicksSetFromISR(handler[id],left_ticks-1);

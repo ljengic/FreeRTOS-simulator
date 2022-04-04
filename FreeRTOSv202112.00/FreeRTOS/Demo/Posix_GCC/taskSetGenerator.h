@@ -17,3 +17,6 @@ int getHiperPeriod();
 void printInfo(int x);
 bool * getReport(int i);
 bool setReport(int i,int x);
+void countMissedDeadlines();
+void writeReportInFile();
+int getMissedDeadlines(int i);
