@@ -4,7 +4,7 @@
 #define MAX_PERIOD_CNT	1000
 #define MAX_NAME_LENGHT	8
 
-void startTaskSetGenerator(double utilization,int n);
+void startTaskSetGenerator(double utilization,int n, char * report_file);
 
 int getTaskPeriod(int i);
 int getTaskDuration(int i);

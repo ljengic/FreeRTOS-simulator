@@ -20,6 +20,7 @@ struct periodic_task{
 double u[MAX_TASK_CNT];
 int hiperperiod;
 double total_utilization;
+char * file_path;
 char names[MAX_TASK_CNT][MAX_NAME_LENGHT];
 char default_name[MAX_NAME_LENGHT] = "Task_00\0";
 
@@ -115,11 +116,13 @@ void calculateNumOfPeriods(){
 		}
 }
 
-void startTaskSetGenerator(double utilization,int n){
+void startTaskSetGenerator(double utilization,int n, char * report_file){
 
 	TASK_CNT = n;
 
 	total_utilization = utilization;
+
+	file_path = report_file;
 
 	calculateUtilization(utilization);
 
@@ -170,7 +173,7 @@ void writeReportInFile(){
 
 	FILE *file;
 
-	file = fopen("/home/luka/FreeRTOS-simulator/Report.csv","a");
+	file = fopen(file_path,"a");
 	/*
 	fprintf(file,"utilization,number_of_taks,total missed");
 

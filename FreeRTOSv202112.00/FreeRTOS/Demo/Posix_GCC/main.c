@@ -148,12 +148,13 @@ StackType_t uxTimerTaskStack[ configTIMER_TASK_STACK_DEPTH ];
 int main( int argc, char **argv )
 {
 
-    if(argc<=2) {
+    if(argc<=3) {
 		printf("You did not feed me with right arguments, I will die now :( ...\n");
 		exit(1);
 	}
 	double utilization = (double)(atoi(argv[1])/100.);  //argv[0] is the program name
 	int n = atoi(argv[2]);
+    char * report_file = argv[3];
 
     /* SIGINT is not blocked by the posix port */
     signal( SIGINT, handle_sigint );
@@ -178,7 +179,7 @@ int main( int argc, char **argv )
 
     console_init();
 
-    startTaskSetGenerator(utilization,n	);
+    startTaskSetGenerator(utilization,n,report_file);
 
     #if ( mainSELECTED_APPLICATION == BLINKY_DEMO )
         {
