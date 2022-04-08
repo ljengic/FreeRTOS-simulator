@@ -275,7 +275,7 @@ void vApplicationTickHook( void )
 
     #if ( mainSELECTED_APPLICATION == PERIODIC_TASK_DEMO )
         {
-            vPeriodicTickHookFunction();
+           
         }
     #endif /* mainSELECTED_APPLICATION */
 }

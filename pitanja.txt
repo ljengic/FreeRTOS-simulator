@@ -1,3 +1,9 @@
 - novi define u config.h ?
 - imati istovremeno npr. i normalni task i periodic task (razlike u TCB-u) ?
 - u makfile ono sa main funkcijama
+ - gdje pisati smanjenje remining ticka (hook funkcija ili dikretno u prekid) xTaskIncrementTick funkcija ?
+ - periodi ???
+ - koji od ona 4 modela weakly hard uvjeta treba koristti ?
+ - sto prvo raditi (weakly hard ili mijenjanje frekvencija)
+ - treba li u izvjestaj dodati weakly hard uvjete i job killing (kad do toga dode naravno) ?
+- treba li prvo raditi promjena frekvencije pa tek onda weakly hard ?

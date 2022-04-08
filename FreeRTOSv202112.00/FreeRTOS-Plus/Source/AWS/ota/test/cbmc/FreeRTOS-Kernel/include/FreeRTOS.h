@@ -244,6 +244,10 @@
     #define configUSE_ALTERNATIVE_API    0
 #endif
 
+#ifndef configUSE_PERIODIC_TASK
+    #define configUSE_PERIODIC_TASK    0
+#endif
+
 #ifndef portCRITICAL_NESTING_IN_TCB
     #define portCRITICAL_NESTING_IN_TCB    0
 #endif
@@ -831,7 +835,7 @@
 #endif
 
 #ifndef configUSE_TIME_SLICING
-    #define configUSE_TIME_SLICING    1
+    #define configUSE_TIME_SLICING    0
 #endif
 
 #ifndef configINCLUDE_APPLICATION_DEFINED_PRIVILEGED_FUNCTIONS

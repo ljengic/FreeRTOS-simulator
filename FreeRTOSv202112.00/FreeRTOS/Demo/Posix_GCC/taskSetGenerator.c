@@ -1,18 +1,20 @@
 #include "taskSetGenerator.h"
 #include "math.h"
 #include "FreeRTOS.h"
+#include "task.h"
 #include "stdlib.h"
 #include "stdio.h"
 
 int TASK_CNT;
 
 struct periodic_task{
+	TaskHandle_t handler;
 	char * name;
 	double u;
 	TickType_t period;
 	TickType_t duration;
 	int numOfPeriods;
-//	int currentPeriod;          // cunter used for writing in report (ne treba ipak MOZE SE DOBITI KAO PROTEKLO VRIJEME/ PERIOD)
+//	int currentPeriod;          // cunter used for writing in report (ne treba ipak, MOZE SE DOBITI KAO PROTEKLO VRIJEME/ PERIOD)
 	bool report[MAX_PERIOD_CNT];
 	int missed_deadlines;
 } Task_Set[MAX_TASK_CNT];
@@ -46,14 +48,14 @@ int calculateHiperperiod(){
 
 	int temp = getTaskPeriod(0);
 
-	for(int i=1;i<TASK_CNT;i++){
+	for(int i=1;i<getTaskCnt();i++){
 		temp = LCM(getTaskPeriod(i),temp);
 	}
 	hiperperiod = temp;
 }
 
 void calculateTaskDuration(){
-	for(int i=0;i<TASK_CNT;i++){
+	for(int i=0;i<getTaskCnt();i++){
 		Task_Set[i].duration = (int) ((double) getTaskPeriod(i) * getTaskUtilization(i));
 	}
 }
@@ -82,7 +84,7 @@ void makeName(int x){
 
 void generateTaskNames(){
 
-	for(int i=0;i<TASK_CNT;i++){
+	for(int i=0;i<getTaskCnt();i++){
 
 		makeName(i+1);
 
@@ -98,20 +100,20 @@ void calculateUtilization(double utilization){
 
 	sum_u = utilization;
 
-	for(int i=1;i<TASK_CNT;i++){
-		double pot = (double) 1/ (double )(TASK_CNT-i);
+	for(int i=1;i<getTaskCnt();i++){
+		double pot = (double) 1/ (double )(getTaskCnt()-i);
 		next_sum_u = (double) sum_u*pow(rand_0_to_1(),pot);
 		Task_Set[i-1].u = (double) sum_u-next_sum_u;
 		sum_u = next_sum_u;
 
 	}
 
-	Task_Set[TASK_CNT-1].u = sum_u;
+	Task_Set[getTaskCnt()-1].u = sum_u;
 
 }
 
 void calculateNumOfPeriods(){
-	for(int i=0;i<TASK_CNT;i++){
+	for(int i=0;i<getTaskCnt();i++){
 			Task_Set[i].numOfPeriods = getHiperPeriod() / getTaskPeriod(i);
 		}
 }
@@ -174,16 +176,6 @@ void writeReportInFile(){
 	FILE *file;
 
 	file = fopen(file_path,"a");
-	/*
-	fprintf(file,"utilization,number_of_taks,total missed");
-
-	for(int i=0;i<getTaskCnt();i++){
-		fprintf(file,",m%d",i+1);
-	}
-
-	fprintf(file,"\n");
-
-	*/
 
 	fprintf(file,"%lf,%d,%d",total_utilization,getTaskCnt(),sumOfMissedDeadlines());
 
@@ -197,10 +189,20 @@ void writeReportInFile(){
 
 }
 
+TaskHandle_t getTaskHandler(int i){
+	TaskHandle_t ret=Task_Set[i].handler;
+	return ret;
+}
+
+void setTaskHandler(int i,TaskHandle_t x){
+	Task_Set[i].handler =x ;
+}
+
 int getTaskPeriod(int i){
 	int ret=Task_Set[i].period;
 	return ret;
 }
+
 
 int getTaskDuration(int i){
 	int ret=Task_Set[i].duration;
@@ -243,3 +245,7 @@ bool setReport(int i,int x){
 	return Task_Set[i].report[x] = 1;
 }
 
+TaskHandle_t * getPointerToHandler(int i){
+	TaskHandle_t * ret = &Task_Set[i].handler;
+	return ret;
+}

@@ -4,8 +4,8 @@ declare -i num_of_reports=0
 declare -i num_of_tasks=3
 
 
-cd ~
-cd FreeRTOS-simulator
+#cd ~
+#cd FreeRTOS-simulator
 cd Reports
 
 dir=$(pwd)

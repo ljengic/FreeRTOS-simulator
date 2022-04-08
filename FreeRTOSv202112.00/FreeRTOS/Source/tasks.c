@@ -3262,6 +3262,24 @@ BaseType_t xTaskIncrementTick( void )
                 }
             }
         #endif /* configUSE_PREEMPTION */
+
+
+        #if ( configUSE_PERIODIC_TASK == 1 )
+            {
+                int id = uxGetCurrentIdFromISR();
+                TickType_t left_ticks=uxTaskReminigTicksGetFromISR(getTaskHandler(id));
+
+                console_print("task %d, left tick=%2d, num of ready tasks = %d\n",id,left_ticks,listCURRENT_LIST_LENGTH( &( pxReadyTasksLists[ pxCurrentTCB->uxPriority ] ) ));
+
+                if(left_ticks > 0){
+                    uxTaskReminigTicksSetFromISR(getTaskHandler(id),left_ticks-1);
+                }
+
+                if(xTaskGetTickCount() == getHiperPeriod()){
+                    exit_function();
+                }
+            }
+        #endif /* configUSE_PERIODIC_TASK */
     }
     else
     {

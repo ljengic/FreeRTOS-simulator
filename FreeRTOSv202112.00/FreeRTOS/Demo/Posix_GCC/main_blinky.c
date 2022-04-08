@@ -41,12 +41,13 @@ void  main_demo_periodic (void)
 		 					 configMINIMAL_STACK_SIZE,        /* The size of the stack to allocate to the task. */
 		 					 NULL,                            /* The parameter passed to the task - not used in this simple case. */
 		 					 mainTASK_PRIORITY, /* The priority assigned to the task. */
-		 					 handler[i],						/* The task handle is not required, so NULL is passed. */
+		 					 *(getPointerToHandler(i)),						/* The task handle is not required, so NULL is passed. */
 							 getTaskPeriod(i),								/*period*/
 							 getTaskDuration(i));                          /* duration */
 
 
-		// printInfo(i);
+		 printInfo(i);
+		//setTaskHandler(i,handler[i]);
 	 }
 
 	 //console_print( "\n Hiperperiod je %d \n\n" ,getHiperPeriod());
@@ -123,6 +124,7 @@ static void prvTask( void * pvParameters )
 }
 
 void exit_function(){
+
 	/*
 	for(int i=0;i<getTaskCnt();i++){
 		bool * rep = getReport(i);
@@ -132,26 +134,10 @@ void exit_function(){
 		printf("\n");
 	}
 	*/
+
 	countMissedDeadlines();
 
 	writeReportInFile();
 
 	exit(0);
-}
-
-void  vPeriodicTickHookFunction( void ){
-
-	 int id = uxGetCurrentIdFromISR();
-	 TickType_t left_ticks=uxTaskReminigTicksGetFromISR(handler[id]);
-
-	 //printf("task %d, left tick=%d\n",id,left_ticks);
-
-	 if(left_ticks > 0){
-		 uxTaskReminigTicksSetFromISR(handler[id],left_ticks-1);
-	 }
-
-	 if(xTaskGetTickCount() == getHiperPeriod()){
-		 exit_function();
-	 }
-
 }
