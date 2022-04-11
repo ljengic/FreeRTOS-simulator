@@ -22,8 +22,6 @@
  */
 static void prvTask( void * pvParameters );
 
-TaskHandle_t handler[MAX_TASK_CNT];
-
 /*-----------------------------------------------------------*/
 
 /*** SEE THE COMMENTS AT THE TOP OF THIS FILE ***/
@@ -46,11 +44,11 @@ void  main_demo_periodic (void)
 							 getTaskDuration(i));                          /* duration */
 
 
-		 printInfo(i);
+		 //printInfo(i);
 		//setTaskHandler(i,handler[i]);
 	 }
 
-	 //console_print( "\n Hiperperiod je %d \n\n" ,getHiperPeriod());
+	 //console_print( "\nHiperperiod je %d \n\n" ,getHiperPeriod());
 
 	 /*
 	 TaskCreatePeriodic( prvTask,
@@ -101,12 +99,12 @@ static void prvTask( void * pvParameters )
 
 		  //console_print( "%s started\n",name);
 
-		  uxTaskReminigTicksSet(handler[id],duration);
+		  uxTaskReminigTicksSet(getTaskHandler(id),duration);
 		  startTime = xTaskGetTickCount();
 
 		  while(1){
 
-			  if(uxTaskReminigTicksGet(handler[id]) == 0) break;
+			  if(uxTaskReminigTicksGet(getTaskHandler(id)) == 0) break;
 
 		  }
 // ubaci kriticnu sekciju !!!!!!!!!!!!!!!!!!!!!
@@ -125,7 +123,7 @@ static void prvTask( void * pvParameters )
 
 void exit_function(){
 
-	/*
+/*
 	for(int i=0;i<getTaskCnt();i++){
 		bool * rep = getReport(i);
 		for(int j=0;j<getTaskNumberOfPeriods(i);j++){
@@ -133,7 +131,7 @@ void exit_function(){
 		}
 		printf("\n");
 	}
-	*/
+*/	
 
 	countMissedDeadlines();
 

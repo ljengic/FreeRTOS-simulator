@@ -3263,13 +3263,46 @@ BaseType_t xTaskIncrementTick( void )
             }
         #endif /* configUSE_PREEMPTION */
 
+        #if ( configUSE_JOB_KILLING == 1 )
+            {
+                
+                if (pxCurrentTCB->uxPriority > 0){     // provjera da ovo nije IDLE task !!! -> bilo problema s tim jer je radio %0  
+                    int id = uxGetCurrentIdFromISR();
+                    int time = xTaskGetTickCount();
+                    int left_ticks = uxTaskReminigTicksGetFromISR(getTaskHandler(id));
+                    int period = pxCurrentTCB->xTaskPeriod;
+                    int duration = getTaskDuration(id);
+                    if(((time%period)+left_ticks) > period){
+                        //console_print( ":( Trebam ubiti task broj %d  :(\n",id);
+                        uxTaskReminigTicksSetFromISR(getTaskHandler(id),duration);
+                        incrementTimesKilled(id);
+                        vTaskDelay(period - (time%period)); 
+                    }
+                } 
+                /*
+                if (pxCurrentTCB->uxPriority > 0){     // provjera da ovo nije IDLE task !!! -> bilo problema s tim jer je radio %0  
+                    int time = xTaskGetTickCount();
+                    int left_ticks = pxCurrentTCB->xRemainingTicks;
+                    int period = pxCurrentTCB->xTaskPeriod;
+                    if(((time%period)+left_ticks) > period){
+                        //console_print( ":( Trebam ubiti task broj %d  :(\n",id);
+                        pxCurrentTCB->xRemainingTicks=pxCurrentTCB->xTaskDuration;
+                        incrementTimesKilled(pxCurrentTCB->xTaskId);
+                        vTaskDelay(period - (time%period)); 
+                    }
+                } 
+                */  
+            }
+        #endif
+
 
         #if ( configUSE_PERIODIC_TASK == 1 )
             {
+                
                 int id = uxGetCurrentIdFromISR();
                 TickType_t left_ticks=uxTaskReminigTicksGetFromISR(getTaskHandler(id));
 
-                console_print("task %d, left tick=%2d, num of ready tasks = %d\n",id,left_ticks,listCURRENT_LIST_LENGTH( &( pxReadyTasksLists[ pxCurrentTCB->uxPriority ] ) ));
+                //console_print("task %d, left tick=%d, num of ready tasks = %d\n",id,left_ticks,listCURRENT_LIST_LENGTH( &( pxReadyTasksLists[ pxCurrentTCB->uxPriority ] ) ));
 
                 if(left_ticks > 0){
                     uxTaskReminigTicksSetFromISR(getTaskHandler(id),left_ticks-1);
@@ -3278,8 +3311,23 @@ BaseType_t xTaskIncrementTick( void )
                 if(xTaskGetTickCount() == getHiperPeriod()){
                     exit_function();
                 }
+                /*
+
+                TickType_t left_ticks=pxCurrentTCB->xRemainingTicks;
+
+                //console_print("task %d, left tick=%d, num of ready tasks = %d\n",id,left_ticks,listCURRENT_LIST_LENGTH( &( pxReadyTasksLists[ pxCurrentTCB->uxPriority ] ) ));
+
+                if(left_ticks > 0){
+                    pxCurrentTCB->xRemainingTicks--;
+                }
+
+                if(xTaskGetTickCount() == getHiperPeriod()){
+                    exit_function();
+                }
+                */
             }
         #endif /* configUSE_PERIODIC_TASK */
+
     }
     else
     {

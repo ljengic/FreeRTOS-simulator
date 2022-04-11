@@ -17,10 +17,14 @@ int main( int argc, char **argv )
 
 	file = fopen(file_path,"a");
 	
-	fprintf(file,"Utilization,Number_of_tasks,Total missed");
+	fprintf(file,"Utilization,Number_of_tasks,Total missed,Total killed");
 
 	for(int i=0;i<num_of_tasks;i++){
 		fprintf(file,",Task_%d missed",i+1);
+	}
+
+	for(int i=0;i<num_of_tasks;i++){
+		fprintf(file,",Task_%d killed",i+1);
 	}
 
 	fprintf(file,"\n");

@@ -25,3 +25,5 @@ int getMissedDeadlines(int i);
 void setTaskHandler(int i,TaskHandle_t x);
 TaskHandle_t getTaskHandler(int i);
 TaskHandle_t * getPointerToHandler(int i);
+void incrementTimesKilled(int i);
+int getTimesKilled(int i);

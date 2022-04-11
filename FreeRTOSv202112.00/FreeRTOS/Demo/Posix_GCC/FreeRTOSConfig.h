@@ -61,6 +61,7 @@
 #define configSUPPORT_STATIC_ALLOCATION            1
 #define configUSE_PERIODIC_TASK					   1
 #define configUSE_TIME_SLICING                     0
+#define configUSE_JOB_KILLING                      1
 
 /* Software timer related configuration options.  The maximum possible task
  * priority is configMAX_PRIORITIES - 1.  The priority of the timer task is
@@ -194,8 +195,9 @@ extern void vLoggingPrintf( const char * pcFormatString,
 
 typedef struct tskTaskControlBlock * TaskHandle_t;
 
+extern void incrementTimesKilled(int i);
 extern void exit_function();
 extern TaskHandle_t getTaskHandler(int i);
 extern int getHiperPeriod();
-extern  void console_print( const char * fmt,
-                        ... );
+//extern  void console_print( const char * fmt,
+//                        ... );

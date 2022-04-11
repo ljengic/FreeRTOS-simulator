@@ -846,6 +846,11 @@
     #define configUSE_TIME_SLICING    1
 #endif
 
+#ifndef configUSE_JOB_KILLING
+    #define configUSE_JOB_KILLING    0
+#endif
+
+
 #ifndef configINCLUDE_APPLICATION_DEFINED_PRIVILEGED_FUNCTIONS
     #define configINCLUDE_APPLICATION_DEFINED_PRIVILEGED_FUNCTIONS    0
 #endif

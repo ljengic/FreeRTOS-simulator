@@ -17,6 +17,7 @@ struct periodic_task{
 //	int currentPeriod;          // cunter used for writing in report (ne treba ipak, MOZE SE DOBITI KAO PROTEKLO VRIJEME/ PERIOD)
 	bool report[MAX_PERIOD_CNT];
 	int missed_deadlines;
+	int times_killed;
 } Task_Set[MAX_TASK_CNT];
 
 double u[MAX_TASK_CNT];
@@ -118,6 +119,12 @@ void calculateNumOfPeriods(){
 		}
 }
 
+void resetTimesKilled(){
+		for(int i=0;i<getTaskCnt();i++){
+			Task_Set[i].times_killed=0;
+		}
+}
+
 void startTaskSetGenerator(double utilization,int n, char * report_file){
 
 	TASK_CNT = n;
@@ -137,6 +144,8 @@ void startTaskSetGenerator(double utilization,int n, char * report_file){
 	calculateNumOfPeriods();
 
 	generateTaskNames();
+
+	resetTimesKilled();
 
 }
 
@@ -171,22 +180,43 @@ int sumOfMissedDeadlines(){
 	return ret;
 }
 
+int sumOfKilledTasks(){
+	int ret=0;
+	for(int i=0;i<getTaskCnt();i++){
+		ret+=getTimesKilled(i);
+	}
+	return ret;
+}
+
 void writeReportInFile(){
 
 	FILE *file;
 
 	file = fopen(file_path,"a");
 
-	fprintf(file,"%lf,%d,%d",total_utilization,getTaskCnt(),sumOfMissedDeadlines());
+	fprintf(file,"%lf,%d,%d,%d",total_utilization,getTaskCnt(),sumOfMissedDeadlines(),sumOfKilledTasks());
 
 	for(int i=0;i<getTaskCnt();i++){
 		fprintf(file,",%d",getMissedDeadlines(i));
+	}
+
+	for(int i=0;i<getTaskCnt();i++){
+		fprintf(file,",%d",getTimesKilled(i));
 	}
 
 	fprintf(file,"\n");
 
 	fclose(file);
 
+}
+
+void incrementTimesKilled(int i){
+	Task_Set[i].times_killed++;
+}
+
+int getTimesKilled(int i){
+	int ret=Task_Set[i].times_killed;
+	return ret;
 }
 
 TaskHandle_t getTaskHandler(int i){
