@@ -1,2 +1,3 @@
-- dodati prvInitialiseNewTaskPeriodic
-- dodati upute za koristenje xTaskCreatePeriodic u task.h
+- napravit novi header za vanjske funkcije
+- dodati kontrolu propustenih deadline-a u xTaskIncrementTick
+- dodati star_time varijablu u taskgenerator

@@ -3265,7 +3265,7 @@ BaseType_t xTaskIncrementTick( void )
 
         #if ( configUSE_JOB_KILLING == 1 )
             {
-                
+                /*
                 if (pxCurrentTCB->uxPriority > 0){     // provjera da ovo nije IDLE task !!! -> bilo problema s tim jer je radio %0  
                     int id = uxGetCurrentIdFromISR();
                     int time = xTaskGetTickCount();
@@ -3279,7 +3279,7 @@ BaseType_t xTaskIncrementTick( void )
                         vTaskDelay(period - (time%period)); 
                     }
                 } 
-                /*
+                */
                 if (pxCurrentTCB->uxPriority > 0){     // provjera da ovo nije IDLE task !!! -> bilo problema s tim jer je radio %0  
                     int time = xTaskGetTickCount();
                     int left_ticks = pxCurrentTCB->xRemainingTicks;
@@ -3291,14 +3291,14 @@ BaseType_t xTaskIncrementTick( void )
                         vTaskDelay(period - (time%period)); 
                     }
                 } 
-                */  
+                
             }
         #endif
 
 
         #if ( configUSE_PERIODIC_TASK == 1 )
             {
-                
+                /*
                 int id = uxGetCurrentIdFromISR();
                 TickType_t left_ticks=uxTaskReminigTicksGetFromISR(getTaskHandler(id));
 
@@ -3311,20 +3311,32 @@ BaseType_t xTaskIncrementTick( void )
                 if(xTaskGetTickCount() == getHiperPeriod()){
                     exit_function();
                 }
-                /*
+                */
+                
 
-                TickType_t left_ticks=pxCurrentTCB->xRemainingTicks;
+                //TickType_t left_ticks=pxCurrentTCB->xRemainingTicks;
+                int period = pxCurrentTCB->xTaskPeriod;
 
-                //console_print("task %d, left tick=%d, num of ready tasks = %d\n",id,left_ticks,listCURRENT_LIST_LENGTH( &( pxReadyTasksLists[ pxCurrentTCB->uxPriority ] ) ));
+                //console_print("task %d, left tick=%d, num of ready tasks = %d\n",pxCurrentTCB->xTaskId,pxCurrentTCB->xRemainingTicks,listCURRENT_LIST_LENGTH( &( pxReadyTasksLists[ pxCurrentTCB->uxPriority ] ) ));
 
-                if(left_ticks > 0){
+                if(pxCurrentTCB->xRemainingTicks ==  pxCurrentTCB->xTaskDuration && pxCurrentTCB->uxPriority > 0){
+                    setStartTime(pxCurrentTCB->xTaskId,xTaskGetTickCount()-xTaskGetTickCount()%period);
+                }
+
+                if(pxCurrentTCB->xRemainingTicks > 0){
                     pxCurrentTCB->xRemainingTicks--;
+                }
+
+                if(pxCurrentTCB->xRemainingTicks == 0 && pxCurrentTCB->uxPriority > 0){
+                    if((xTaskGetTickCount()- getStartTime(pxCurrentTCB->xTaskId)) <= period){
+                        setReport(pxCurrentTCB->xTaskId,xTaskGetTickCount()/period);
+                    }
                 }
 
                 if(xTaskGetTickCount() == getHiperPeriod()){
                     exit_function();
                 }
-                */
+                
             }
         #endif /* configUSE_PERIODIC_TASK */
 

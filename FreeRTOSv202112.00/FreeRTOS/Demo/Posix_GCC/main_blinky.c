@@ -92,29 +92,22 @@ static void prvTask( void * pvParameters )
 	  int period = getTaskPeriod(id);
 	  int duration = getTaskDuration(id);
 	  char * name = getTaskName(id);
-	  TickType_t startTime;
 
 	  for( ; ; )
 	  {
 
+
 		  //console_print( "%s started\n",name);
 
 		  uxTaskReminigTicksSet(getTaskHandler(id),duration);
-		  startTime = xTaskGetTickCount();
 
 		  while(1){
 
 			  if(uxTaskReminigTicksGet(getTaskHandler(id)) == 0) break;
 
 		  }
-// ubaci kriticnu sekciju !!!!!!!!!!!!!!!!!!!!!
-
-		  if((xTaskGetTickCount()- startTime) <= (xTaskGetTickCount()%period)){
-			  setReport(id,xTaskGetTickCount()/period);
-		  }
 
 		  //console_print( "%s bloked\n",name);
-
 
 		  vTaskDelay(period - (xTaskGetTickCount()%period));
 	  }
@@ -123,7 +116,7 @@ static void prvTask( void * pvParameters )
 
 void exit_function(){
 
-/*
+	/*
 	for(int i=0;i<getTaskCnt();i++){
 		bool * rep = getReport(i);
 		for(int j=0;j<getTaskNumberOfPeriods(i);j++){
@@ -131,7 +124,7 @@ void exit_function(){
 		}
 		printf("\n");
 	}
-*/	
+	*/
 
 	countMissedDeadlines();
 

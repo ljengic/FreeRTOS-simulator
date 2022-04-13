@@ -27,3 +27,5 @@ TaskHandle_t getTaskHandler(int i);
 TaskHandle_t * getPointerToHandler(int i);
 void incrementTimesKilled(int i);
 int getTimesKilled(int i);
+int getStartTime(int i);
+void setStartTime(int i,int x);

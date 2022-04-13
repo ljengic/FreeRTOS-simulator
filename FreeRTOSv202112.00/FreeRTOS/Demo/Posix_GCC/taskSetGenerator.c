@@ -13,6 +13,7 @@ struct periodic_task{
 	double u;
 	TickType_t period;
 	TickType_t duration;
+	int start_time;
 	int numOfPeriods;
 //	int currentPeriod;          // cunter used for writing in report (ne treba ipak, MOZE SE DOBITI KAO PROTEKLO VRIJEME/ PERIOD)
 	bool report[MAX_PERIOD_CNT];
@@ -237,6 +238,15 @@ int getTaskPeriod(int i){
 int getTaskDuration(int i){
 	int ret=Task_Set[i].duration;
 	return ret;
+}
+
+int getStartTime(int i){
+	int ret=Task_Set[i].start_time;
+	return ret;
+}
+
+void setStartTime(int i,int x){
+	Task_Set[i].start_time=x;
 }
 
 double getTaskUtilization(int i){
