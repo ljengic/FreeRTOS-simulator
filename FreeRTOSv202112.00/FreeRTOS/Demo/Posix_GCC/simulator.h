@@ -8,6 +8,7 @@ extern TaskHandle_t getTaskHandler(int i);
 extern int getHiperPeriod();
 extern int getStartTime(int i);
 extern void setStartTime(int i,int x);
+void weaklyHardBroken();
 
 //extern  void console_print( const char * fmt,
 //                        ... );

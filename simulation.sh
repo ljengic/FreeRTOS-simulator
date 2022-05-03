@@ -25,6 +25,6 @@ cd ..
 
 ./make_report_file $num_of_tasks $location
 
-for ((i=80;i<=150;i+=1)) do
+for ((i=90;i<=110;i+=1)) do
 	./FreeRTOSv202112.00/FreeRTOS/Demo/Posix_GCC/build/posix_demo $i $num_of_tasks $location
 done

@@ -13,6 +13,7 @@ struct periodic_task{
 	double u;
 	TickType_t period;
 	TickType_t duration;
+	int weakly_hard_constraint;
 	int start_time;
 	int numOfPeriods;
 //	int currentPeriod;          // cunter used for writing in report (ne treba ipak, MOZE SE DOBITI KAO PROTEKLO VRIJEME/ PERIOD)
@@ -21,6 +22,7 @@ struct periodic_task{
 	int times_killed;
 } Task_Set[MAX_TASK_CNT];
 
+int weakly_hard = 1;  // if this varijable is 1 then weakly hard conditions are OK 
 double u[MAX_TASK_CNT];
 int hiperperiod;
 double total_utilization;
@@ -68,6 +70,14 @@ void generateTaskPeriods(){
 	Task_Set[2].period = 40;
 	Task_Set[3].period = 50;
 	Task_Set[4].period = 100;
+}
+
+void generateWeaklyHardConstraint(){
+	Task_Set[0].weakly_hard_constraint = 2;
+	Task_Set[1].weakly_hard_constraint = 2;
+	Task_Set[2].weakly_hard_constraint = 2;
+	Task_Set[3].weakly_hard_constraint = 2;
+	Task_Set[4].weakly_hard_constraint = 2;
 }
 
 void makeName(int x){
@@ -126,6 +136,14 @@ void resetTimesKilled(){
 		}
 }
 
+void resetReports(){
+		for(int i=0;i<getTaskCnt();i++){
+			for(int j=0;j<MAX_PERIOD_CNT;j++){
+				Task_Set[i].report[j]=0;
+			}
+		}
+}
+
 void startTaskSetGenerator(double utilization,int n, char * report_file){
 
 	TASK_CNT = n;
@@ -138,6 +156,8 @@ void startTaskSetGenerator(double utilization,int n, char * report_file){
 
 	generateTaskPeriods();
 
+	generateWeaklyHardConstraint();
+
 	calculateTaskDuration();
 
 	calculateHiperperiod();
@@ -147,6 +167,8 @@ void startTaskSetGenerator(double utilization,int n, char * report_file){
 	generateTaskNames();
 
 	resetTimesKilled();
+
+	resetReports();
 
 }
 
@@ -195,7 +217,7 @@ void writeReportInFile(){
 
 	file = fopen(file_path,"a");
 
-	fprintf(file,"%lf,%d,%d,%d",total_utilization,getTaskCnt(),sumOfMissedDeadlines(),sumOfKilledTasks());
+	fprintf(file,"%lf,%d,%d,%d,%d",total_utilization,getTaskCnt(),sumOfMissedDeadlines(),sumOfKilledTasks(),getWeaklyHard());
 
 	for(int i=0;i<getTaskCnt();i++){
 		fprintf(file,",%d",getMissedDeadlines(i));
@@ -209,6 +231,24 @@ void writeReportInFile(){
 
 	fclose(file);
 
+}
+
+void weaklyHardBroken(){
+	weakly_hard = 0;
+}
+
+int getWeaklyHard(){
+	int ret=weakly_hard;
+	return ret;
+}
+
+int setWeaklyHard(){
+	weakly_hard=1;
+}
+
+int getWeaklyHardConstraint(int i){
+	int ret=Task_Set[i].weakly_hard_constraint;
+	return ret;
 }
 
 void incrementTimesKilled(int i){

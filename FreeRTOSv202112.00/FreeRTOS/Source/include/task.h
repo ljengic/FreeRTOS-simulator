@@ -265,7 +265,8 @@ BaseType_t xTaskCreatePeriodic( TaskFunction_t pxTaskCode,
                                UBaseType_t uxPriority,
                                TaskHandle_t * const pxCreatedTask,
 							TickType_t period,
-							TickType_t duration) PRIVILEGED_FUNCTION;
+							TickType_t duration,
+                            int weakly_hard_constraint) PRIVILEGED_FUNCTION;
 #endif
 
 

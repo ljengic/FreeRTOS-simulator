@@ -7,3 +7,8 @@
 
 - treba li imati gettere za variable iz TCB-a od pxCurrentTCB ?
 - kod job killinga treba li osigurati da se task krece uvijek od pocetka ?
+
+- gdje stavljati varijabl npr. weakly_hard zastavicu (u task.c ili task generator) ? (zasd je u task generatoru)
+- jel problem ako se u task generatoru koristi int ?
+- postavljanje vremena zadnjeg propustenog deadlinea kod job killing 
+- slucaj kada dode u task increment sa left tick je 0 ???

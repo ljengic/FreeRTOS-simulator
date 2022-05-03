@@ -1,3 +1,6 @@
+//THIS FILE NEEDS TO BE COMPILED SEPEATELY !!!!!
+//gcc make_report_file.c -o make_report_file
+
 #include "stdlib.h"
 #include "stdio.h"
 
@@ -17,7 +20,7 @@ int main( int argc, char **argv )
 
 	file = fopen(file_path,"a");
 	
-	fprintf(file,"Utilization,Number_of_tasks,Total missed,Total killed");
+	fprintf(file,"Utilization,Number_of_tasks,Total missed,Total killed,Weakly hard");
 
 	for(int i=0;i<num_of_tasks;i++){
 		fprintf(file,",Task_%d missed",i+1);

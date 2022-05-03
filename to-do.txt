@@ -1,3 +1,1 @@
-- napravit novi header za vanjske funkcije
-- dodati kontrolu propustenih deadline-a u xTaskIncrementTick
-- dodati star_time varijablu u taskgenerator
+- dodati u tcb varijablu za vrijeme zadnjeg propustenog deadlinea  (last_missed_deadline_time)

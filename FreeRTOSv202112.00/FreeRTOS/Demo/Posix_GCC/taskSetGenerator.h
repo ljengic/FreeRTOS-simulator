@@ -29,3 +29,4 @@ void incrementTimesKilled(int i);
 int getTimesKilled(int i);
 int getStartTime(int i);
 void setStartTime(int i,int x);
+void weaklyHardBroken();

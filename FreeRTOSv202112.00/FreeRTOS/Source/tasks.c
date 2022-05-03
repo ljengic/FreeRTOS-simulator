@@ -338,6 +338,12 @@ typedef struct tskTaskControlBlock       /* The old naming convention is used to
         TickType_t xRemainingTicks;
 	#endif
 
+    #if ( configUSE_WEAKLY_HARD == 1 )
+        uint8_t weakly_hard_constraint; //  if this is 0 then task must meet all deadlines 
+        TickType_t last_missed_deadline_time;
+        uint8_t can_be_missed;
+	#endif
+
 } tskTCB;
 
 /* The old tskTCB name is maintained above then typedefed to the new TCB_t name
@@ -834,7 +840,8 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB ) PRIVILEGED_FUNCTION;
                                UBaseType_t uxPriority,
                                TaskHandle_t * const pxCreatedTask,
 							TickType_t period,
-							TickType_t duration)
+							TickType_t duration,
+                            int weakly_hard_constraint)
     {
            TCB_t * pxNewTCB;
            BaseType_t xReturn;
@@ -910,6 +917,7 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB ) PRIVILEGED_FUNCTION;
 				pxNewTCB->xTaskDuration = duration;
 				pxNewTCB->xDeadline = period;
 				pxNewTCB->xRemainingTicks = duration;
+                pxNewTCB->weakly_hard_constraint = weakly_hard_constraint;
 
                prvInitialiseNewTask( pxTaskCode, pcName, ( uint32_t ) usStackDepth, pvParameters, uxPriority, pxCreatedTask, pxNewTCB, NULL );
                prvAddNewTaskToReadyList( pxNewTCB );
@@ -3107,6 +3115,31 @@ BaseType_t xTaskCatchUpTicks( TickType_t xTicksToCatchUp )
 #endif /* INCLUDE_xTaskAbortDelay */
 /*----------------------------------------------------------*/
 
+#if ( configUSE_PERIODIC_TASK == 1 )
+
+void check_weakly_hard(TickType_t deadline_time)
+{
+
+    if(pxCurrentTCB->last_missed_deadline_time == 0){
+        return ;
+    }
+
+    if(pxCurrentTCB->last_missed_deadline_time > (deadline_time - pxCurrentTCB->xTaskPeriod * pxCurrentTCB->weakly_hard_constraint)){
+        console_print("### last missed dealdline = %d , deadline time = %d   ###\n",pxCurrentTCB->last_missed_deadline_time,deadline_time);
+        console_print("task %d, left tick=%d, num of ready tasks = %d\n",pxCurrentTCB->xTaskId,pxCurrentTCB->xRemainingTicks,listCURRENT_LIST_LENGTH( &( pxReadyTasksLists[ pxCurrentTCB->uxPriority ] ) ));
+
+        weaklyHardBroken();
+    }
+
+    if(pxCurrentTCB->weakly_hard_constraint == 0){
+        console_print("task %d, left tick=%d, num of ready tasks = %d\n",pxCurrentTCB->xTaskId,pxCurrentTCB->xRemainingTicks,listCURRENT_LIST_LENGTH( &( pxReadyTasksLists[ pxCurrentTCB->uxPriority ] ) ));
+
+        weaklyHardBroken();
+    }
+}
+
+#endif /* configUSE_PERIODIC_TASK */
+
 BaseType_t xTaskIncrementTick( void )
 {
     TCB_t * pxTCB;
@@ -3263,18 +3296,7 @@ BaseType_t xTaskIncrementTick( void )
             }
         #endif /* configUSE_PREEMPTION */
 
-        #if ( configUSE_JOB_KILLING == 1 )
-            {
-                if (pxCurrentTCB->uxPriority > 0){     // provjera da ovo nije IDLE task !!! -> bilo problema s tim jer je radio %0  
-                    if(((xTaskGetTickCount()%pxCurrentTCB->xTaskPeriod)+pxCurrentTCB->xRemainingTicks) > pxCurrentTCB->xTaskPeriod){
-                        //console_print( ":( Trebam ubiti task broj %d  :(\n",id);
-                        pxCurrentTCB->xRemainingTicks=pxCurrentTCB->xTaskDuration;
-                        incrementTimesKilled(pxCurrentTCB->xTaskId);
-                        vTaskDelay(pxCurrentTCB->xTaskPeriod - (xTaskGetTickCount()%pxCurrentTCB->xTaskPeriod)); 
-                    }
-                }  
-            }
-        #endif
+
 
         #if ( configUSE_PERIODIC_TASK == 1 )
             {
@@ -3292,6 +3314,14 @@ BaseType_t xTaskIncrementTick( void )
                     if((xTaskGetTickCount()- getStartTime(pxCurrentTCB->xTaskId)) <= pxCurrentTCB->xTaskPeriod){
                         setReport(pxCurrentTCB->xTaskId,xTaskGetTickCount()/pxCurrentTCB->xTaskPeriod);
                     }
+                    else{
+                        TickType_t deadline = xTaskGetTickCount()-xTaskGetTickCount()%pxCurrentTCB->xTaskPeriod;
+
+                        check_weakly_hard(deadline);
+                        pxCurrentTCB->last_missed_deadline_time=deadline;
+                        //console_print("HELOUUU :O \n");
+                        //console_print("task %d, left tick=%d, num of ready tasks = %d\n",pxCurrentTCB->xTaskId,pxCurrentTCB->xRemainingTicks,listCURRENT_LIST_LENGTH( &( pxReadyTasksLists[ pxCurrentTCB->uxPriority ] ) ));
+                    }
                 }
 
                 if(xTaskGetTickCount() == getHiperPeriod()){
@@ -3300,6 +3330,27 @@ BaseType_t xTaskIncrementTick( void )
                 
             }
         #endif /* configUSE_PERIODIC_TASK */
+
+        #if ( configUSE_JOB_KILLING == 1 )
+            {
+                if (pxCurrentTCB->uxPriority > 0){     // provjera da ovo nije IDLE task !!! -> bilo problema s tim jer je radio modulo 0  
+                    if(((xTaskGetTickCount()%pxCurrentTCB->xTaskPeriod)+pxCurrentTCB->xRemainingTicks) > pxCurrentTCB->xTaskPeriod){
+                        //console_print( ":( Trebam ubiti task broj %d  :(\n",id);
+                        pxCurrentTCB->xRemainingTicks=pxCurrentTCB->xTaskDuration;
+                        incrementTimesKilled(pxCurrentTCB->xTaskId);
+
+
+                        TickType_t deadline = xTaskGetTickCount()-xTaskGetTickCount()%pxCurrentTCB->xTaskPeriod + pxCurrentTCB->xTaskPeriod;
+                        
+                        check_weakly_hard(deadline);
+                        pxCurrentTCB->last_missed_deadline_time=deadline;
+                        //console_print("KILLLLLL :D \n");
+
+                        vTaskDelay(pxCurrentTCB->xTaskPeriod - (xTaskGetTickCount()%pxCurrentTCB->xTaskPeriod)); 
+                    }
+                }  
+            }
+        #endif
 
     }
     else

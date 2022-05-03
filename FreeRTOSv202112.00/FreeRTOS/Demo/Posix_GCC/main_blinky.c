@@ -32,6 +32,8 @@ void  main_demo_periodic (void)
 
 
 
+	setWeaklyHard();
+
 	 for(int i=0;i<getTaskCnt();i++){
 		 xTaskCreatePeriodic( prvTask,             /* The function that implements the task. */
 				 	 	 	 i,  					// task identificator
@@ -41,7 +43,8 @@ void  main_demo_periodic (void)
 		 					 mainTASK_PRIORITY, /* The priority assigned to the task. */
 		 					 *(getPointerToHandler(i)),						/* The task handle is not required, so NULL is passed. */
 							 getTaskPeriod(i),								/*period*/
-							 getTaskDuration(i));                          /* duration */
+							 getTaskDuration(i),
+							 getWeaklyHardConstraint(i));                          /* duration */
 
 
 		 //printInfo(i);
@@ -99,7 +102,7 @@ static void prvTask( void * pvParameters )
 
 		  //console_print( "%s started\n",name);
 
-		  uxTaskReminigTicksSet(getTaskHandler(id),duration);
+		  
 
 		  while(1){
 
@@ -109,14 +112,20 @@ static void prvTask( void * pvParameters )
 
 		  //console_print( "%s bloked\n",name);
 
-		  vTaskDelay(period - (xTaskGetTickCount()%period));
+		uxTaskReminigTicksSet(getTaskHandler(id),duration);
+			
+		int wait = (getStartTime(id)+period)-xTaskGetTickCount();
+
+		if(wait > 0){
+			vTaskDelay(wait);
+		}
 	  }
 
 }
 
 void exit_function(){
 
-	/*
+
 	for(int i=0;i<getTaskCnt();i++){
 		bool * rep = getReport(i);
 		for(int j=0;j<getTaskNumberOfPeriods(i);j++){
@@ -124,7 +133,8 @@ void exit_function(){
 		}
 		printf("\n");
 	}
-	*/
+	
+	printf("%d\n",getWeaklyHard());
 
 	countMissedDeadlines();
 
