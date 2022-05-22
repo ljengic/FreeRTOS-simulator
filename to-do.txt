@@ -1,1 +1,1 @@
-- dodati u tcb varijablu za vrijeme zadnjeg propustenog deadlinea  (last_missed_deadline_time)
+

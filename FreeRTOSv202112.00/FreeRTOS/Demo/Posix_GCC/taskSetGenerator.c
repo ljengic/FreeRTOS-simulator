@@ -14,10 +14,9 @@ struct periodic_task{
 	TickType_t period;
 	TickType_t duration;
 	int weakly_hard_constraint;
-	int start_time;
 	int numOfPeriods;
 //	int currentPeriod;          // cunter used for writing in report (ne treba ipak, MOZE SE DOBITI KAO PROTEKLO VRIJEME/ PERIOD)
-	bool report[MAX_PERIOD_CNT];
+	int report[MAX_PERIOD_CNT]; // VRATI NA BOLL, OVO JE RADI TESTIRANJA SAMO !!!!!
 	int missed_deadlines;
 	int times_killed;
 } Task_Set[MAX_TASK_CNT];
@@ -65,6 +64,13 @@ void calculateTaskDuration(){
 }
 
 void generateTaskPeriods(){
+	/*
+	Task_Set[0].period = 30;
+	Task_Set[1].period = 35;
+	Task_Set[2].period = 40;
+	Task_Set[3].period = 50;
+	Task_Set[4].period = 100;
+	*/
 	Task_Set[0].period = 30;
 	Task_Set[1].period = 35;
 	Task_Set[2].period = 40;
@@ -73,9 +79,11 @@ void generateTaskPeriods(){
 }
 
 void generateWeaklyHardConstraint(){
-	Task_Set[0].weakly_hard_constraint = 2;
+	// 0 is for task that must meet al deadlines
+	// n means that task can be skipped once in every n period interval
+	Task_Set[0].weakly_hard_constraint = 10;
 	Task_Set[1].weakly_hard_constraint = 2;
-	Task_Set[2].weakly_hard_constraint = 2;
+	Task_Set[2].weakly_hard_constraint = 5;
 	Task_Set[3].weakly_hard_constraint = 2;
 	Task_Set[4].weakly_hard_constraint = 2;
 }
@@ -280,15 +288,6 @@ int getTaskDuration(int i){
 	return ret;
 }
 
-int getStartTime(int i){
-	int ret=Task_Set[i].start_time;
-	return ret;
-}
-
-void setStartTime(int i,int x){
-	Task_Set[i].start_time=x;
-}
-
 double getTaskUtilization(int i){
 	double ret=Task_Set[i].u;
 	return ret;
@@ -317,11 +316,11 @@ int getMissedDeadlines(int i){
 	return ret;
 }
 
-bool * getReport(int i){
+int * getReport(int i){
 	return Task_Set[i].report;
 }
 
-bool setReport(int i,int x){
+int setReport(int i,int x){
 	return Task_Set[i].report[x] = 1;
 }
 

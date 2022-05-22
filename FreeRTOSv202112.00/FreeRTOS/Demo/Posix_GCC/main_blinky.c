@@ -51,24 +51,6 @@ void  main_demo_periodic (void)
 		//setTaskHandler(i,handler[i]);
 	 }
 
-	 //console_print( "\nHiperperiod je %d \n\n" ,getHiperPeriod());
-
-	 /*
-	 TaskCreatePeriodic( prvTask,
-					 "PeriodicTasks-Test",
-					 configMINIMAL_STACK_SIZE,
-					 NULL,
-					 mainTASK_PRIORITY,
-					 handler_na_task,
-					 5000 / portTICK_RATE_MS,
-					 1000 / portTICK_RATE_MS);
-	*/
-	 //console_print( "prosao sam taskCreatePeriodic \n" );
-
-
-
-
-
 	/* Start the tasks and timer running. */
 	vTaskStartScheduler();
 
@@ -87,8 +69,6 @@ void  main_demo_periodic (void)
 static void prvTask( void * pvParameters )
 {
 
-	//console_print( "usao sam u task \n" );
-
 	  ( void ) pvParameters;
 
 	  int id = xGetCurrentId();
@@ -99,26 +79,10 @@ static void prvTask( void * pvParameters )
 	  for( ; ; )
 	  {
 
-
-		  //console_print( "%s started\n",name);
-
-		  
-
 		  while(1){
-
-			  if(uxTaskReminigTicksGet(getTaskHandler(id)) == 0) break;
 
 		  }
 
-		  //console_print( "%s bloked\n",name);
-
-		uxTaskReminigTicksSet(getTaskHandler(id),duration);
-			
-		int wait = (getStartTime(id)+period)-xTaskGetTickCount();
-
-		if(wait > 0){
-			vTaskDelay(wait);
-		}
 	  }
 
 }
@@ -127,7 +91,7 @@ void exit_function(){
 
 
 	for(int i=0;i<getTaskCnt();i++){
-		bool * rep = getReport(i);
+		int * rep = getReport(i);
 		for(int j=0;j<getTaskNumberOfPeriods(i);j++){
 			printf("%d",rep[j]);
 		}

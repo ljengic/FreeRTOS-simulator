@@ -146,7 +146,7 @@
                                                                               \
         /* listGET_OWNER_OF_NEXT_ENTRY indexes through the list, so the tasks of \
          * the  same priority get an equal share of the processor time. */                    \
-        listGET_OWNER_OF_NEXT_ENTRY( pxCurrentTCB, &( pxReadyTasksLists[ uxTopPriority ] ) ); \
+        pxCurrentTCB=listGET_OWNER_OF_HEAD_ENTRY(&( pxReadyTasksLists[ uxTopPriority ] ) ); \
         uxTopReadyPriority = uxTopPriority;                                                   \
     } /* taskSELECT_HIGHEST_PRIORITY_TASK */
 
@@ -176,7 +176,7 @@
         /* Find the highest priority list that contains ready tasks. */                         \
         portGET_HIGHEST_PRIORITY( uxTopPriority, uxTopReadyPriority );                          \
         configASSERT( listCURRENT_LIST_LENGTH( &( pxReadyTasksLists[ uxTopPriority ] ) ) > 0 ); \
-        listGET_OWNER_OF_NEXT_ENTRY( pxCurrentTCB, &( pxReadyTasksLists[ uxTopPriority ] ) );   \
+        pxCurrentTCB=listGET_OWNER_OF_HEAD_ENTRY( &( pxReadyTasksLists[ uxTopPriority ] ) );   \
     } /* taskSELECT_HIGHEST_PRIORITY_TASK() */
 
 /*-----------------------------------------------------------*/
@@ -218,10 +218,32 @@
  * Place the task represented by pxTCB into the appropriate ready list for
  * the task.  It is inserted at the end of the list.
  */
+
+//if(( pxTCB )->xTaskId == 4 || ( pxTCB )->xTaskId == 1)                                        \
+//    listSET_LIST_ITEM_VALUE(&(( pxTCB )->xStateListItem),20);                                    \
+//else                                                                                                 \
+//    listSET_LIST_ITEM_VALUE(&(( pxTCB )->xStateListItem),10);                                  \
+//  vListInsert( &( pxReadyTasksLists[ ( pxTCB )->uxPriority ] ), &( ( pxTCB )->xStateListItem ) );      \
+
+
+//    if(( pxTCB )->xTaskPeriod != NULL)                                                                                  \
+//        listSET_LIST_ITEM_VALUE(&(( pxTCB )->xStateListItem),( pxTCB )->xTaskPeriod-(xTaskGetTickCount()%( pxTCB )->xTaskPeriod));    \
+
+//if(( pxTCB )->can_be_missed == 0)                                        \
+//    listSET_LIST_ITEM_VALUE(&(( pxTCB )->xStateListItem),1);                                    \
+//else                                                                                                 \
+//    listSET_LIST_ITEM_VALUE(&(( pxTCB )->xStateListItem),1);                                  \
+
 #define prvAddTaskToReadyList( pxTCB )                                                                 \
     traceMOVED_TASK_TO_READY_STATE( pxTCB );                                                           \
     taskRECORD_READY_PRIORITY( ( pxTCB )->uxPriority );                                                \
-    listINSERT_END( &( pxReadyTasksLists[ ( pxTCB )->uxPriority ] ), &( ( pxTCB )->xStateListItem ) ); \
+    if(( pxTCB )->weakly_hard_constraint == 0 && ( pxTCB )->xTaskPeriod != NULL)                                         \
+        listSET_LIST_ITEM_VALUE(&(( pxTCB )->xStateListItem),( pxTCB )->xTaskPeriod+xTaskGetTickCount()-(xTaskGetTickCount()%(( pxTCB )->xTaskPeriod))); \
+    else if(( pxTCB )->previous_deadline_met < (( pxTCB )->weakly_hard_constraint-1) && ( pxTCB )->xTaskPeriod != NULL)                                        \
+        listSET_LIST_ITEM_VALUE(&(( pxTCB )->xStateListItem),( pxTCB )->xTaskPeriod+xTaskGetTickCount()-(xTaskGetTickCount()%(( pxTCB )->xTaskPeriod)) | (1 << 31));                                      \
+    else if(( pxTCB )->xTaskPeriod != NULL)                                                                                                \
+        listSET_LIST_ITEM_VALUE(&(( pxTCB )->xStateListItem),(( pxTCB )->xTaskPeriod+xTaskGetTickCount()-(xTaskGetTickCount()%(( pxTCB )->xTaskPeriod))) | (1 << 31)| (1 << 30));                                  \
+    vListInsert( &( pxReadyTasksLists[ ( pxTCB )->uxPriority ] ), &( ( pxTCB )->xStateListItem ) );      \
     tracePOST_MOVED_TASK_TO_READY_STATE( pxTCB )
 /*-----------------------------------------------------------*/
 
@@ -333,15 +355,14 @@ typedef struct tskTaskControlBlock       /* The old naming convention is used to
 	#if ( configUSE_PERIODIC_TASK == 1 )
         uint8_t xTaskId;
         TickType_t xTaskPeriod;
+        TickType_t start_time;
         TickType_t xTaskDuration;
         TickType_t xDeadline;
         TickType_t xRemainingTicks;
-	#endif
 
-    #if ( configUSE_WEAKLY_HARD == 1 )
+        // variables used for weakly hard conditions control
         uint8_t weakly_hard_constraint; //  if this is 0 then task must meet all deadlines 
-        TickType_t last_missed_deadline_time;
-        uint8_t can_be_missed;
+        uint8_t previous_deadline_met;
 	#endif
 
 } tskTCB;
@@ -359,6 +380,7 @@ PRIVILEGED_DATA TCB_t * volatile pxCurrentTCB = NULL;
  * doing so breaks some kernel aware debuggers and debuggers that rely on removing
  * the static qualifier. */
 PRIVILEGED_DATA static List_t pxReadyTasksLists[ configMAX_PRIORITIES ]; /*< Prioritised ready tasks. */
+PRIVILEGED_DATA static List_t xWaitTaskList;
 PRIVILEGED_DATA static List_t xDelayedTaskList1;                         /*< Delayed tasks. */
 PRIVILEGED_DATA static List_t xDelayedTaskList2;                         /*< Delayed tasks (two lists are used - one for delays that have overflowed the current tick count. */
 PRIVILEGED_DATA static List_t * volatile pxDelayedTaskList;              /*< Points to the delayed task list currently being used. */
@@ -839,9 +861,9 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB ) PRIVILEGED_FUNCTION;
                                void * const pvParameters,
                                UBaseType_t uxPriority,
                                TaskHandle_t * const pxCreatedTask,
-							TickType_t period,
-							TickType_t duration,
-                            int weakly_hard_constraint)
+                                TickType_t period,
+                                TickType_t duration,
+                                int weakly_hard_constraint)
     {
            TCB_t * pxNewTCB;
            BaseType_t xReturn;
@@ -918,6 +940,9 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB ) PRIVILEGED_FUNCTION;
 				pxNewTCB->xDeadline = period;
 				pxNewTCB->xRemainingTicks = duration;
                 pxNewTCB->weakly_hard_constraint = weakly_hard_constraint;
+
+                pxNewTCB->previous_deadline_met = weakly_hard_constraint;
+
 
                prvInitialiseNewTask( pxTaskCode, pcName, ( uint32_t ) usStackDepth, pvParameters, uxPriority, pxCreatedTask, pxNewTCB, NULL );
                prvAddNewTaskToReadyList( pxNewTCB );
@@ -3117,25 +3142,60 @@ BaseType_t xTaskCatchUpTicks( TickType_t xTicksToCatchUp )
 
 #if ( configUSE_PERIODIC_TASK == 1 )
 
-void check_weakly_hard(TickType_t deadline_time)
+void addTaskToWaitList(TCB_t * const pxItemToRemove){
+    
+    /* Remove the task from the ready list before adding it to the blocked list
+     * as the same list item is used for both lists. */
+    if( uxListRemove( &( pxItemToRemove->xStateListItem ) ) == ( UBaseType_t ) 0 )
+    {
+        /* The current task must be in a ready list, so there is no need to
+         * check, and the port reset macro can be called directly. */
+        portRESET_READY_PRIORITY( pxItemToRemove->uxPriority, uxTopReadyPriority ); /*lint !e931 pxCurrentTCB cannot change as it is the calling task.  pxCurrentTCB->uxPriority and uxTopReadyPriority cannot change as called with scheduler suspended or in a critical section. */
+    }
+    else
+    {
+        mtCOVERAGE_TEST_MARKER();
+    }
+
+    listINSERT_END( &(xWaitTaskList), &( pxItemToRemove->xStateListItem ) );
+
+}
+
+void addTaskToReadyList(TCB_t * const pxItemToAdd){
+    
+    /* Remove the task from the ready list before adding it to the blocked list
+     * as the same list item is used for both lists. */
+    if( uxListRemove( &( pxItemToAdd->xStateListItem ) ) == ( UBaseType_t ) 0 )
+    {
+        /* The current task must be in a ready list, so there is no need to
+         * check, and the port reset macro can be called directly. */
+        portRESET_READY_PRIORITY( pxItemToAdd->uxPriority, uxTopReadyPriority ); /*lint !e931 pxCurrentTCB cannot change as it is the calling task.  pxCurrentTCB->uxPriority and uxTopReadyPriority cannot change as called with scheduler suspended or in a critical section. */
+    }
+    else
+    {
+        mtCOVERAGE_TEST_MARKER();
+    }
+
+    prvAddTaskToReadyList( pxItemToAdd );
+
+}
+
+void check_weakly_hard(TCB_t * const Tcb)
 {
 
-    if(pxCurrentTCB->last_missed_deadline_time == 0){
-        return ;
-    }
-
-    if(pxCurrentTCB->last_missed_deadline_time > (deadline_time - pxCurrentTCB->xTaskPeriod * pxCurrentTCB->weakly_hard_constraint)){
-        console_print("### last missed dealdline = %d , deadline time = %d   ###\n",pxCurrentTCB->last_missed_deadline_time,deadline_time);
-        console_print("task %d, left tick=%d, num of ready tasks = %d\n",pxCurrentTCB->xTaskId,pxCurrentTCB->xRemainingTicks,listCURRENT_LIST_LENGTH( &( pxReadyTasksLists[ pxCurrentTCB->uxPriority ] ) ));
-
+    if(Tcb->weakly_hard_constraint == 0){
+        //console_print("##task %d, left tick=%d, num of ready tasks = %d\n",Tcb->xTaskId,Tcb->xRemainingTicks,listCURRENT_LIST_LENGTH( &( pxReadyTasksLists[ Tcb->uxPriority ] ) ));
         weaklyHardBroken();
+        return;
     }
 
-    if(pxCurrentTCB->weakly_hard_constraint == 0){
-        console_print("task %d, left tick=%d, num of ready tasks = %d\n",pxCurrentTCB->xTaskId,pxCurrentTCB->xRemainingTicks,listCURRENT_LIST_LENGTH( &( pxReadyTasksLists[ pxCurrentTCB->uxPriority ] ) ));
-
+    if(Tcb->previous_deadline_met < (Tcb->weakly_hard_constraint - 1)){
+       // console_print("### last missed dealdline = %d , deadline time = %d   ###\n",pxCurrentTCB->last_missed_deadline_time,deadline_time);
+        //console_print("**task %d, left tick=%d, num of ready tasks = %d\n",Tcb->xTaskId,Tcb->xRemainingTicks,listCURRENT_LIST_LENGTH( &( pxReadyTasksLists[ Tcb->uxPriority ] ) ));
         weaklyHardBroken();
+        return;
     }
+
 }
 
 #endif /* configUSE_PERIODIC_TASK */
@@ -3259,7 +3319,7 @@ BaseType_t xTaskIncrementTick( void )
             {
                 if( listCURRENT_LIST_LENGTH( &( pxReadyTasksLists[ pxCurrentTCB->uxPriority ] ) ) > ( UBaseType_t ) 1 )
                 {
-                    xSwitchRequired = pdTRUE;
+                    UxSwitchRequired = pdTRE;
                 }
                 else
                 {
@@ -3300,57 +3360,88 @@ BaseType_t xTaskIncrementTick( void )
 
         #if ( configUSE_PERIODIC_TASK == 1 )
             {
+
+                 PRIVILEGED_DATA TCB_t * volatile Tcb = NULL;
+                int num_of_tasks;
+
+                if (pxCurrentTCB->uxPriority > 0){
+
                 //console_print("task %d, left tick=%d, num of ready tasks = %d\n",pxCurrentTCB->xTaskId,pxCurrentTCB->xRemainingTicks,listCURRENT_LIST_LENGTH( &( pxReadyTasksLists[ pxCurrentTCB->uxPriority ] ) ));
-
-                if(pxCurrentTCB->xRemainingTicks ==  pxCurrentTCB->xTaskDuration && pxCurrentTCB->uxPriority > 0){
-                    setStartTime(pxCurrentTCB->xTaskId,xTaskGetTickCount()-xTaskGetTickCount()%pxCurrentTCB->xTaskPeriod);
-                }
-
+                    
                 if(pxCurrentTCB->xRemainingTicks > 0){
                     pxCurrentTCB->xRemainingTicks--;
                 }
 
-                if(pxCurrentTCB->xRemainingTicks == 0 && pxCurrentTCB->uxPriority > 0){
-                    if((xTaskGetTickCount()- getStartTime(pxCurrentTCB->xTaskId)) <= pxCurrentTCB->xTaskPeriod){
-                        setReport(pxCurrentTCB->xTaskId,xTaskGetTickCount()/pxCurrentTCB->xTaskPeriod);
+                if(pxCurrentTCB->xRemainingTicks == 0){
+                    if(xTaskGetTickCount()- pxCurrentTCB->start_time <= pxCurrentTCB->xTaskPeriod){
+                        setReport(pxCurrentTCB->xTaskId,pxCurrentTCB->start_time/pxCurrentTCB->xTaskPeriod);
+                        if(pxCurrentTCB->weakly_hard_constraint != 0) pxCurrentTCB->previous_deadline_met++;
+                        addTaskToWaitList(pxCurrentTCB);
                     }
-                    else{
-                        TickType_t deadline = xTaskGetTickCount()-xTaskGetTickCount()%pxCurrentTCB->xTaskPeriod;
+                    else{ // TU NEBI VISE NIKAD TREBO UCI
+                        console_print("HELOUUU, SOMETHING IS VERY BAD :O \n");  
+                    }
 
-                        check_weakly_hard(deadline);
-                        pxCurrentTCB->last_missed_deadline_time=deadline;
-                        //console_print("HELOUUU :O \n");
-                        //console_print("task %d, left tick=%d, num of ready tasks = %d\n",pxCurrentTCB->xTaskId,pxCurrentTCB->xRemainingTicks,listCURRENT_LIST_LENGTH( &( pxReadyTasksLists[ pxCurrentTCB->uxPriority ] ) ));
-                    }
+                }
+
+                }
+                else{
+                    //console_print("Idle task\n");
                 }
 
                 if(xTaskGetTickCount() == getHiperPeriod()){
                     exit_function();
                 }
                 
+
+                //PROLAZAK PO SVIMA U READY LISTI
+
+               ( &(pxReadyTasksLists[1]) )->pxIndex = listGET_END_MARKER( &(pxReadyTasksLists[1]) );
+               listGET_OWNER_OF_NEXT_ENTRY( Tcb, &(pxReadyTasksLists[1]) );
+               num_of_tasks = listCURRENT_LIST_LENGTH( &(pxReadyTasksLists[1]) );
+
+                for(int i=0;i<num_of_tasks;i++){
+
+                    if (Tcb->uxPriority > 0){     // provjera da ovo nije IDLE task !!! -> bilo problema s tim jer je radio modulo 0  
+                        if((xTaskGetTickCount() - Tcb->start_time + Tcb->xRemainingTicks) > Tcb->xTaskPeriod){
+
+                            incrementTimesKilled(Tcb->xTaskId);
+                            check_weakly_hard(Tcb);
+                            Tcb->previous_deadline_met=0;
+                            addTaskToWaitList(Tcb);
+
+                            //console_print("KILLLLLL :D \n");
+                        }
+                    } 
+
+                     listGET_OWNER_OF_NEXT_ENTRY( Tcb, &(pxReadyTasksLists[1]) );
+
+                }  
+
+
+                // PROLAZAK PO SVIMA U WAIT LISTI
+
+               ( &(xWaitTaskList) )->pxIndex = listGET_END_MARKER( &(xWaitTaskList) );
+               listGET_OWNER_OF_NEXT_ENTRY( Tcb, &(xWaitTaskList) );
+               num_of_tasks = listCURRENT_LIST_LENGTH( &(xWaitTaskList) );
+
+                for(int i=0;i<num_of_tasks;i++){
+
+                    if (Tcb->uxPriority > 0){     // provjera da ovo nije IDLE task !!! -> bilo problema s tim jer je radio modulo 0  
+                        if((xTaskGetTickCount()%Tcb->xTaskPeriod) == 0){
+                            
+                            Tcb->xRemainingTicks = Tcb->xTaskDuration;
+                            Tcb->start_time=xTaskGetTickCount();
+                            addTaskToReadyList(Tcb);
+                        }
+                    } 
+
+                     listGET_OWNER_OF_NEXT_ENTRY( Tcb, &(xWaitTaskList) );
+
+                }  
+
             }
         #endif /* configUSE_PERIODIC_TASK */
-
-        #if ( configUSE_JOB_KILLING == 1 )
-            {
-                if (pxCurrentTCB->uxPriority > 0){     // provjera da ovo nije IDLE task !!! -> bilo problema s tim jer je radio modulo 0  
-                    if(((xTaskGetTickCount()%pxCurrentTCB->xTaskPeriod)+pxCurrentTCB->xRemainingTicks) > pxCurrentTCB->xTaskPeriod){
-                        //console_print( ":( Trebam ubiti task broj %d  :(\n",id);
-                        pxCurrentTCB->xRemainingTicks=pxCurrentTCB->xTaskDuration;
-                        incrementTimesKilled(pxCurrentTCB->xTaskId);
-
-
-                        TickType_t deadline = xTaskGetTickCount()-xTaskGetTickCount()%pxCurrentTCB->xTaskPeriod + pxCurrentTCB->xTaskPeriod;
-                        
-                        check_weakly_hard(deadline);
-                        pxCurrentTCB->last_missed_deadline_time=deadline;
-                        //console_print("KILLLLLL :D \n");
-
-                        vTaskDelay(pxCurrentTCB->xTaskPeriod - (xTaskGetTickCount()%pxCurrentTCB->xTaskPeriod)); 
-                    }
-                }  
-            }
-        #endif
 
     }
     else
@@ -3365,6 +3456,8 @@ BaseType_t xTaskIncrementTick( void )
             }
         #endif
     }
+
+//    console_print("### %d ###\n",xSwitchRequired);
 
     return xSwitchRequired;
 }
@@ -4136,6 +4229,8 @@ static void prvInitialiseTaskLists( void )
         vListInitialise( &( pxReadyTasksLists[ uxPriority ] ) );
     }
 
+    
+    vListInitialise( &xWaitTaskList );
     vListInitialise( &xDelayedTaskList1 );
     vListInitialise( &xDelayedTaskList2 );
     vListInitialise( &xPendingReadyList );

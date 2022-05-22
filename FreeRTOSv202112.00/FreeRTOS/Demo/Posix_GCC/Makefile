@@ -79,11 +79,11 @@ else
 endif
 
 ifdef PROFILE
-  CFLAGS              +=   -pg  -O0
-  LDFLAGS             +=   -pg  -O0
+  CFLAGS              +=   -pg  -g
+  LDFLAGS             +=   -pg  -g
 else
-  CFLAGS              +=   -O3
-  LDFLAGS             +=   -O3
+  CFLAGS              +=   -g
+  LDFLAGS             +=   -g
 endif
 
 ifdef SANITIZE_ADDRESS
