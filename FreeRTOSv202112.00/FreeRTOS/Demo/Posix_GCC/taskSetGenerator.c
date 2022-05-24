@@ -81,10 +81,10 @@ void generateTaskPeriods(){
 void generateWeaklyHardConstraint(){
 	// 0 is for task that must meet al deadlines
 	// n means that task can be skipped once in every n period interval
-	Task_Set[0].weakly_hard_constraint = 10;
+	Task_Set[0].weakly_hard_constraint = 2;
 	Task_Set[1].weakly_hard_constraint = 2;
 	Task_Set[2].weakly_hard_constraint = 5;
-	Task_Set[3].weakly_hard_constraint = 2;
+	Task_Set[3].weakly_hard_constraint = 0;
 	Task_Set[4].weakly_hard_constraint = 2;
 }
 

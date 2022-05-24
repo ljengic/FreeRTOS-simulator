@@ -87,8 +87,7 @@ static void prvTask( void * pvParameters )
 
 }
 
-void exit_function(){
-
+void print_report(){
 
 	for(int i=0;i<getTaskCnt();i++){
 		int * rep = getReport(i);
@@ -99,6 +98,11 @@ void exit_function(){
 	}
 	
 	printf("%d\n",getWeaklyHard());
+}
+
+void exit_function(){
+
+	print_report();
 
 	countMissedDeadlines();
 
