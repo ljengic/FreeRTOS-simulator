@@ -1,0 +1,3 @@
+Utilization,Number_of_tasks,Total skipped,Weakly hard,QoS,Task_1 skipped,Task_2 skipped,Task_3 skipped,Task_4 skipped,Task_5 skipped
+1.250000,5,66,1,0.700000,9,0,23,34,0
+1.250000,5,80,1,0.892905,11,6,53,1,9

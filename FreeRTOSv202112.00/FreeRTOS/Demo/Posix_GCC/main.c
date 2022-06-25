@@ -202,7 +202,7 @@ int main( int argc, char **argv )
         }
     #endif /* if ( mainSELECTED_APPLICATION ) */
 
-    return 0;
+    return getWeaklyHard();
 }
 /*-----------------------------------------------------------*/
 

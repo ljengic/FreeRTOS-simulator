@@ -234,29 +234,64 @@
 //else                                                                                                 \
 //    listSET_LIST_ITEM_VALUE(&(( pxTCB )->xStateListItem),1);                                  \
 
-#define addTaskWEAKLY_HARD( pxTCB )
-  
-/*-----------------------------------------------------------*/
 
-#define addTaskRTO( pxTCB )  
-/*-----------------------------------------------------------*/
+#if ( configBWP_ALGORITHM == 1 )
 
-#define prvAddTaskToReadyList( pxTCB )                                                                 \
+    #define prvAddTaskToReadyList( pxTCB )                                                                 \
     traceMOVED_TASK_TO_READY_STATE( pxTCB );                                                           \
     taskRECORD_READY_PRIORITY( ( pxTCB )->uxPriority );                                                 \
                                                                                                            \
-                                                                                                     \
-        if(( pxTCB )->weakly_hard_constraint == 0 && ( pxTCB )->xTaskPeriod != NULL)                                         \
-            listSET_LIST_ITEM_VALUE(&(( pxTCB )->xStateListItem),( pxTCB )->xTaskPeriod+xTaskGetTickCount()-(xTaskGetTickCount()%(( pxTCB )->xTaskPeriod)));                             \
-        else if(( pxTCB )->previous_deadline_met < (( pxTCB )->weakly_hard_constraint-1) && ( pxTCB )->xTaskPeriod != NULL)                                                               \
-            listSET_LIST_ITEM_VALUE(&(( pxTCB )->xStateListItem),( pxTCB )->xTaskPeriod+xTaskGetTickCount()-(xTaskGetTickCount()%(( pxTCB )->xTaskPeriod)) | (1 << 31));                                      \
-        else if(( pxTCB )->xTaskPeriod != NULL )                                                                                                                                                \
+        if(( pxTCB )->weakly_hard_constraint == 0 && ( pxTCB )->xTaskPeriod != NULL){                                         \
+            listSET_LIST_ITEM_VALUE(&(( pxTCB )->xStateListItem),( pxTCB )->xTaskPeriod+xTaskGetTickCount()-(xTaskGetTickCount()%(( pxTCB )->xTaskPeriod)) | (1 << 31));                             \
+        }               \
+        else if(( pxTCB )->previous_deadline_met < (( pxTCB )->weakly_hard_constraint-1) && ( pxTCB )->xTaskPeriod != NULL){                                                               \
+            listSET_LIST_ITEM_VALUE(&(( pxTCB )->xStateListItem),( pxTCB )->xTaskPeriod+xTaskGetTickCount()-(xTaskGetTickCount()%(( pxTCB )->xTaskPeriod)) | (1 << 31));                  \        
+        }               \
+        else if(( pxTCB )->xTaskPeriod != NULL ){                                                                                                                                                \
             listSET_LIST_ITEM_VALUE(&(( pxTCB )->xStateListItem),(( pxTCB )->xTaskPeriod+xTaskGetTickCount()-(xTaskGetTickCount()%(( pxTCB )->xTaskPeriod))) | (1 << 31)| (1 << 30));                                  \
-                                                                                                            \
-                                                                                                           \
-    vListInsert( &( pxReadyTasksLists[ ( pxTCB )->uxPriority ] ), &( ( pxTCB )->xStateListItem ) );      \
+        } \
+        vListInsert( &( pxReadyTasksLists[ ( pxTCB )->uxPriority ] ), &( ( pxTCB )->xStateListItem ) );   \
+        \
     tracePOST_MOVED_TASK_TO_READY_STATE( pxTCB )
-/*-----------------------------------------------------------*/
+
+#endif
+
+#if ( configEDF_ALGORITHM == 1 )
+
+   #define prvAddTaskToReadyList( pxTCB )                                                                 \
+    traceMOVED_TASK_TO_READY_STATE( pxTCB );                                                           \
+    taskRECORD_READY_PRIORITY( ( pxTCB )->uxPriority );                                                 \
+    if(( pxTCB )->xTaskPeriod != NULL ){                                                                                                                                  \
+        listSET_LIST_ITEM_VALUE(&(( pxTCB )->xStateListItem),(( pxTCB )->xTaskPeriod+xTaskGetTickCount()-(xTaskGetTickCount()%(( pxTCB )->xTaskPeriod))));                 \
+    }                                                                                                        \
+    vListInsert( &( pxReadyTasksLists[ ( pxTCB )->uxPriority ] ), &( ( pxTCB )->xStateListItem ) );  \
+    tracePOST_MOVED_TASK_TO_READY_STATE( pxTCB )
+
+#endif
+
+#if ( configRTO_ALGORITHM == 1 )
+
+   #define prvAddTaskToReadyList( pxTCB )                                                                 \
+    traceMOVED_TASK_TO_READY_STATE( pxTCB );                                                           \
+    taskRECORD_READY_PRIORITY( ( pxTCB )->uxPriority );                                                 \
+    if(( pxTCB )->weakly_hard_constraint == 0 && ( pxTCB )->xTaskPeriod != NULL){                                         \
+        listSET_LIST_ITEM_VALUE(&(( pxTCB )->xStateListItem),( pxTCB )->xTaskPeriod+xTaskGetTickCount()-(xTaskGetTickCount()%(( pxTCB )->xTaskPeriod)));                             \
+        vListInsert( &( pxReadyTasksLists[ ( pxTCB )->uxPriority ] ), &( ( pxTCB )->xStateListItem ) );  \
+    }               \
+    else if(( pxTCB )->previous_deadline_met < (( pxTCB )->weakly_hard_constraint-1) && ( pxTCB )->xTaskPeriod != NULL){                                                               \
+        listSET_LIST_ITEM_VALUE(&(( pxTCB )->xStateListItem),( pxTCB )->xTaskPeriod+xTaskGetTickCount()-(xTaskGetTickCount()%(( pxTCB )->xTaskPeriod)));                  \        
+        vListInsert( &( pxReadyTasksLists[ ( pxTCB )->uxPriority ] ), &( ( pxTCB )->xStateListItem ) );  \
+    }                                                                                                                 \
+    else if(xTaskGetTickCount()==0 && ( pxTCB )->xTaskPeriod != NULL){                                                               \
+         listINSERT_END( &(xWaitTaskList), &( ( pxTCB )->xStateListItem ) );  \
+    }  \
+    else if(( pxTCB )->xTaskPeriod == NULL){        \
+        vListInsert( &( pxReadyTasksLists[ ( pxTCB )->uxPriority ] ), &( ( pxTCB )->xStateListItem ) );  \
+    } \
+    tracePOST_MOVED_TASK_TO_READY_STATE( pxTCB )
+
+#endif
+
 
 /*
  * Several functions take a TaskHandle_t parameter that can optionally be NULL,
@@ -954,8 +989,12 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB ) PRIVILEGED_FUNCTION;
 				pxNewTCB->xRemainingTicks = duration;
                 pxNewTCB->weakly_hard_constraint = weakly_hard_constraint;
 
-                pxNewTCB->previous_deadline_met = weakly_hard_constraint;
-
+                if(configRTO_ALGORITHM == 1){
+                    pxNewTCB->previous_deadline_met = 0;
+                }
+                else{
+                    pxNewTCB->previous_deadline_met = 0;
+                }
 
                prvInitialiseNewTask( pxTaskCode, pcName, ( uint32_t ) usStackDepth, pvParameters, uxPriority, pxCreatedTask, pxNewTCB, NULL );
                prvAddNewTaskToReadyList( pxNewTCB );
@@ -3193,8 +3232,7 @@ void addTaskToReadyList(TCB_t * const pxItemToAdd){
 
 }
 
-void check_weakly_hard(TCB_t * const Tcb)
-{
+void check_weakly_hard(TCB_t * const Tcb){
 
     if(Tcb->weakly_hard_constraint == 0){
         //console_print("##task %d, left tick=%d, num of ready tasks = %d\n",Tcb->xTaskId,Tcb->xRemainingTicks,listCURRENT_LIST_LENGTH( &( pxReadyTasksLists[ Tcb->uxPriority ] ) ));
@@ -3263,9 +3301,17 @@ void wakeTasks(){
                 
                 // NO MORE SPEEPING HEHE :D
 
+                //console_print("task %d, weakly hard = %d, previouys met deadline = %d\n",Tcb->xTaskId,Tcb->weakly_hard_constraint,Tcb->previous_deadline_met);
+
                 Tcb->xRemainingTicks = Tcb->xTaskDuration;
                 Tcb->start_time=xTaskGetTickCount();
-                addTaskToReadyList(Tcb);
+
+                if(configRTO_ALGORITHM == 1 && Tcb->weakly_hard_constraint != 0 && Tcb->previous_deadline_met >= (Tcb->weakly_hard_constraint-1)){
+                    Tcb->previous_deadline_met=0;
+                }
+                else{
+                    addTaskToReadyList(Tcb);
+                }
             }
         } 
 
@@ -3438,7 +3484,7 @@ BaseType_t xTaskIncrementTick( void )
         #if ( configUSE_PERIODIC_TASK == 1 )
             {
 
-                if (pxCurrentTCB->uxPriority > 0){
+                if (pxCurrentTCB->xTaskPeriod != NULL){
 
                 //console_print("task %d, left tick=%d, num of ready tasks = %d\n",pxCurrentTCB->xTaskId,pxCurrentTCB->xRemainingTicks,listCURRENT_LIST_LENGTH( &( pxReadyTasksLists[ pxCurrentTCB->uxPriority ] ) ));
                     
@@ -3453,7 +3499,9 @@ BaseType_t xTaskIncrementTick( void )
                         addTaskToWaitList(pxCurrentTCB);
                     }
                     else{ // TU NEBI VISE NIKAD TREBO UCI
-                        console_print("HELOUUU, SOMETHING IS VERY BAD :O \n");  
+                        console_print("HELOUUU, SOMETHING IS VERY BAD :O \n");
+                        console_print("task %d, period=%d, time-start_time = %d, time mod period = %d\n",pxCurrentTCB->xTaskId,pxCurrentTCB->xTaskPeriod,xTaskGetTickCount()- pxCurrentTCB->start_time,xTaskGetTickCount()%pxCurrentTCB->xTaskPeriod);
+           
                     }
 
                 }

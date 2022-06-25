@@ -1,0 +1,8 @@
+#define MAX_TASK_CNT	100
+
+#define LOWEST_PERIOD	10
+#define HIGHEST_PERIOD	50
+#define MAX_HIPERPERIOD	10000
+
+#define LOWEST_WH	0
+#define HIGHEST_WH	5

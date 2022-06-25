@@ -1,1 +1,60 @@
+- dodati da se weakly hard citaju iz datoteke
 
+hard real time - strogi sustavi za ...
+hard real time task - zadatci sa strogim ograničenjima
+posao, zadatak je skup poslova
+weakly hard - strogi sustav za rad u stvarnom vremenu sa ublaženim uvjetima
+SRSV - sustav za rad u stvarnom vremenu
+Qos - kvaliteta usluge
+
+monospace za imena funkcija i varijabli (sve iz koda u tesktu) i prazne zagrade kod funkcija
+
+isječak / odsječak ???
+
+2. POGLAVLJE :
+
+SKIP OVER I U UVODU I U PRVOM POGLAVLJU !!!!!!
+
+dodaj sliku uz opis periodicnih taskova
+
+Izvršenje posla nakon
+njegovog krajnjeg roka za izvršavanje ekvivalentno je tome da se posao nije niti izvršio.
+
+Period zadatka iznosi 4 vremenske jedinice,
+
+ Na
+temelju važnosti pojedinog zadatka za rad cjelokupnog sustava odre ¯duje se u koliko slijednih
+perioda se zadatak može jednom propustiti. Ovaj pristup osigurava znatno bolje ponašanje u
+uvjetima preoptere´cenja jer se propuštanje pojedinih poslova odvija deterministiˇcki.
+
+š popravi u onoj formuli
+
+Za dani set zadataka zadano je da je prvi zadatak kritiˇcan i mora se uvijek izvršiti, drugi
+zadatak ne utjeˇce na sigurnost sustava, a tre´ci zadatak mora se izvršiti svaki drugi put.
+
+RTO algoritam (eng. Red Tasks Only) je algoritam prema kojemu se samo izvršavaju strogi
+zadatci, dok se oni koji se mogu preskoˇciti uvijek preskaˇcu.
+
+
+3.POGLAVLJE
+. Kod FreeRTOS-a organiziran je u nekoliko datoteka i zauzima svega nekoliko
+kilobajta.
+
+ Zadatci su nadalje smješteni u razliˇcite
+liste, ovisno o tome u kojem stanju se zadatak nalazi.
+
+ Postoje liste za zadatke koji su spremni
+za izvršavanje, za zadatke koji su blokirani te za zadatke koji ˇcekaju odre ¯deno vrijeme kako
+bi se ponovo mogli izvršavati.
+
+ Tako ¯der navedni pristup ne rješava problem preoptere´cenja sustava te je potrebno
+modificirati jezgru FreeRTOS-a kako bi se omoguˇcilo predvidivo ponašanje ukoliko sustav
+u ¯de u trajno preoptere´cenje.Potrebne modifikacije detaljno su opisane u narednim podglavljima.
+
+3 Ti c kT y p e _t x T a s k P e ri o d ;
+4 Ti c kT y p e _t s t a r t _ t i m e ;
+5 Ti c kT y p e _t x T a s k D u r ati o n ;
+6 Ti c kT y p e _t x D e a dli n e ;
+7 Ti c kT y p e _t xR em ai ni n gTi c k s ;
+
+monospace u kodovima ?? ne kuzim bas...

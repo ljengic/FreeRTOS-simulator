@@ -47,7 +47,7 @@ void  main_demo_periodic (void)
 							 getWeaklyHardConstraint(i));                          /* duration */
 
 
-		 //printInfo(i);
+		printInfo(i);
 		//setTaskHandler(i,handler[i]);
 	 }
 
@@ -90,7 +90,7 @@ static void prvTask( void * pvParameters )
 void print_report(){
 
 	for(int i=0;i<getTaskCnt();i++){
-		int * rep = getReport(i);
+		bool * rep = getReport(i);
 		for(int j=0;j<getTaskNumberOfPeriods(i);j++){
 			printf("%d",rep[j]);
 		}
@@ -98,15 +98,23 @@ void print_report(){
 	}
 	
 	printf("%d\n",getWeaklyHard());
+
+	for(int i=0;i<getTaskCnt();i++){
+		printf("%d\n",getWeaklyHardBroken(i));
+	}
+
+
 }
 
 void exit_function(){
 
-	print_report();
-
 	countMissedDeadlines();
 
+	countWeaklyHardBroken();
+
 	writeReportInFile();
+
+	print_report();
 
 	exit(0);
 }

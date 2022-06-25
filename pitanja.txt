@@ -3,5 +3,5 @@
 - treba li dati prioritet taskovima koji se uvijek trebaju izvrsiti (nad onima koji su pod weakly hard)
 - latex ??
 - ako se weakly hard prekrse, prebacujem se na RTO, ali onda su wekaly hard prekrseni jednom (tj. mogu li reci da je weakly hard prekrsen tek kad je prekrsen u RTO)
-- dodati u simulator.sh da se zadaju iz njega weakly hard uvjeti, pa mogu onda dodati u izvjestaj i to 
+- dodati u simulator.sh da se zadaju iz njega weakly hard uvjeti, pa mogu onda dodati u izvjestaj i to  (ili jos bolje mozda da se direktno citaju iz datoteke)
 - POPRAVI DA MOZE BITI BILO KOJI PRIORITET !!!!!! (za probu napravljeno samo da su svi prioriteta 1)

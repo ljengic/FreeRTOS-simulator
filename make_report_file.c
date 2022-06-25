@@ -3,7 +3,7 @@
 
 #include "stdlib.h"
 #include "stdio.h"
-
+#include "unistd.h"
 
 int main( int argc, char **argv )
 {
@@ -16,23 +16,29 @@ int main( int argc, char **argv )
 	int num_of_tasks = atoi(argv[1]);
     char * file_path = argv[2];
 
-	FILE *file;
 
-	file = fopen(file_path,"a");
+	if (access(file_path, F_OK) == 0) {
+
+		return 0;
+
+	} else {
+		FILE *file;
+
+		file = fopen(file_path,"a");
+
+		fprintf(file,"Utilization,Number_of_tasks,Total skipped,Weakly hard,QoS");
+
+		for(int i=0;i<num_of_tasks;i++){
+			fprintf(file,",Task_%d skipped",i+1);
+		}
+
+		fprintf(file,"\n");
+
+		fclose(file);
+	}
+
 	
-	fprintf(file,"Utilization,Number_of_tasks,Total missed,Total killed,Weakly hard");
 
-	for(int i=0;i<num_of_tasks;i++){
-		fprintf(file,",Task_%d missed",i+1);
-	}
-
-	for(int i=0;i<num_of_tasks;i++){
-		fprintf(file,",Task_%d killed",i+1);
-	}
-
-	fprintf(file,"\n");
-
-	fclose(file);
 
 return 0;
 }
