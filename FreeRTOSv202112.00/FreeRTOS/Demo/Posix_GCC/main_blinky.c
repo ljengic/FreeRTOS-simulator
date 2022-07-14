@@ -91,6 +91,7 @@ void print_report(){
 
 	for(int i=0;i<getTaskCnt();i++){
 		bool * rep = getReport(i);
+		printf("Task_%d : ",i+1);
 		for(int j=0;j<getTaskNumberOfPeriods(i);j++){
 			printf("%d",rep[j]);
 		}
@@ -100,7 +101,7 @@ void print_report(){
 	printf("%d\n",getWeaklyHard());
 
 	for(int i=0;i<getTaskCnt();i++){
-		printf("%d\n",getWeaklyHardBroken(i));
+		printf("Weakly_hard_broken TASK_%d : %d\n",i+1,getWeaklyHardBroken(i));
 	}
 
 

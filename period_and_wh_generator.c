@@ -9,6 +9,7 @@
 int period[MAX_TASK_CNT];
 int weakly_hard[MAX_TASK_CNT];
 int duration[MAX_TASK_CNT];
+double u[MAX_TASK_CNT];
 
 double rand_0_to_1()
 {
@@ -28,7 +29,7 @@ int LCM(int a, int b)
 }
 
 void calculateTaskDuration(int n){
-	for(int i=0;i<gn;i++){
+	for(int i=0;i<n;i++){
 		double tmp = ((double) period[i] * u[i]);
 		tmp+=0.5;
 		//Task_Set[i].duration = (int) ((double) getTaskPeriod(i) * getTaskUtilization(i));
@@ -47,8 +48,6 @@ int calculateHiperperiod(int n){
 	}
 	return hiperperiod = temp;
 }
-
-double calculate 
 
 void generatePeriods(int n){
 	for(int i=0;i<n;i++){
@@ -84,6 +83,8 @@ int main( int argc, char **argv )
 		generatePeriods(num_of_tasks);
 		if(calculateHiperperiod(num_of_tasks) < MAX_HIPERPERIOD) break;
 	}
+
+	calculateTaskDuration(num_of_tasks);
 
 	generateWeaklyHard(num_of_tasks);
 

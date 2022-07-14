@@ -60,8 +60,8 @@
 #define configUSE_TASK_NOTIFICATIONS               1
 #define configSUPPORT_STATIC_ALLOCATION            1
 #define configUSE_PERIODIC_TASK					   1
-#define configRTO_ALGORITHM                        1
-#define configBWP_ALGORITHM                        0
+#define configRTO_ALGORITHM                        0
+#define configBWP_ALGORITHM                        1
 #define configEDF_ALGORITHM                        0
 
 /* Software timer related configuration options.  The maximum possible task

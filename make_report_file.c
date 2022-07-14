@@ -26,7 +26,7 @@ int main( int argc, char **argv )
 
 		file = fopen(file_path,"a");
 
-		fprintf(file,"Utilization,Number_of_tasks,Total skipped,Weakly hard,QoS");
+		fprintf(file,"Utilization,Number_of_tasks,Total skipped,Total broken,Weakly hard,QoS,Qos2,QoS3");
 
 		for(int i=0;i<num_of_tasks;i++){
 			fprintf(file,",Task_%d skipped",i+1);

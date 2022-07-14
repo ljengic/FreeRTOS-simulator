@@ -336,6 +336,14 @@ int sumOfMissedDeadlines(){
 	return ret;
 }
 
+int sumOfWeaklyHardBroken(){
+	int ret=0;
+	for(int i=0;i<getTaskCnt();i++){
+		ret+=getWeaklyHardBroken(i);
+	}
+	return ret;
+}
+
 int sumOfKilledTasks(){
 	int ret=0;
 	for(int i=0;i<getTaskCnt();i++){
@@ -361,15 +369,31 @@ double calculateQoS(){
 	return ret;
 }
 
+double calculateQoS2(){
+	double ret;
+	double broken = sumOfWeaklyHardBroken();
+	double all = sumOfAllTaskNum();
+	ret = (all-broken)/all;
+	return ret;
+}
+
+double calculateQoS3(){
+	double ret;
+	double broken = sumOfWeaklyHardBroken();
+	double all = sumOfAllTaskNum();
+	ret = broken/all;
+	return ret;
+}
+
 void writeReportInFile(){
 
-	if(weakly_hard == 0) return;
+	//if(weakly_hard == 0) return;
 
 	FILE *file;
 
 	file = fopen(file_path,"a");
 
-	fprintf(file,"%lf,%d,%d,%d,%lf",total_utilization,getTaskCnt(),sumOfMissedDeadlines(),getWeaklyHard(),calculateQoS());
+	fprintf(file,"%lf,%d,%d,%d,%d,%lf,%lf,%lf",total_utilization,getTaskCnt(),sumOfMissedDeadlines(),sumOfWeaklyHardBroken(),getWeaklyHard(),calculateQoS(),calculateQoS2(),calculateQoS3());
 
 	for(int i=0;i<getTaskCnt();i++){
 		fprintf(file,",%d",getMissedDeadlines(i));
